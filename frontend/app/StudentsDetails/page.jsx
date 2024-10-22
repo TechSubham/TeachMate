@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UserCircle, Mail, Calendar, GraduationCap, Phone } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function CourseStudentsPage({ params }) {
   const [students, setStudents] = useState([]);
@@ -63,20 +61,20 @@ export default function CourseStudentsPage({ params }) {
   if (error) {
     return (
       <div className="p-4">
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="mb-8">
-        <CardHeader className="bg-gray-50">
+      <div className="bg-white rounded-lg shadow-md mb-8">
+        <div className="bg-gray-50 px-6 py-4 rounded-t-lg border-b">
           <h1 className="text-2xl font-bold">Course Details</h1>
-        </CardHeader>
-        <CardContent className="pt-6">
+        </div>
+        <div className="p-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <h2 className="text-xl font-semibold mb-2">{courseDetails?.Course_Title}</h2>
@@ -88,8 +86,8 @@ export default function CourseStudentsPage({ params }) {
               <p><strong>Total Enrolled:</strong> {students.length} students</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <h2 className="text-2xl font-bold mb-6">Enrolled Students</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -99,8 +97,11 @@ export default function CourseStudentsPage({ params }) {
           </p>
         ) : (
           students.map((student) => (
-            <Card key={student.ID} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
+            <div 
+              key={student.ID} 
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+            >
+              <div className="p-6">
                 <div className="flex items-start space-x-4">
                   <UserCircle className="w-12 h-12 text-gray-400" />
                   <div className="space-y-2 flex-1">
@@ -127,8 +128,8 @@ export default function CourseStudentsPage({ params }) {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))
         )}
       </div>
