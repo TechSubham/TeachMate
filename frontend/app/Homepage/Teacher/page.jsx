@@ -1,148 +1,130 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { User, BookOpen, GraduationCap } from "lucide-react";
+import { BookOpen, GraduationCap, Layout, Users, Book } from "lucide-react";
 
 const TeacherHomePage = () => {
-  const [teacherDetails, setTeacherDetails] = useState(null);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
+  const quotes = [
+    {
+      text: "Education is not preparation for life; education is life itself.",
+      author: "John Dewey"
+    },
+    {
+      text: "The art of teaching is the art of assisting discovery.",
+      author: "Mark Van Doren"
+    },
+    {
+      text: "Teaching is the greatest act of optimism.",
+      author: "Colleen Wilcox"
+    },
+    {
+      text: "Teachers plant seeds that grow forever.",
+      author: "Robert John Meehan"
+    }
+  ];
 
   useEffect(() => {
-    const fetchTeacherDetails = async () => {
-      const teacherEmail = localStorage.getItem("userEmail");
+    // Simulate loading for demo purposes
+    const timer = setTimeout(() => setIsLoading(false), 1000);
 
-      if (!teacherEmail) {
-        setError("No teacher email found, please log in.");
-        setIsLoading(false);
-        return;
-      }
+    // Rotate quotes every 5 seconds
+    const quoteTimer = setInterval(() => {
+      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 5000);
 
-      try {
-        const response = await fetch(
-          `http://localhost:5050/Profile/Teacher/${encodeURIComponent(teacherEmail)}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setTeacherDetails({ 
-          First_Name: data.First_Name || '',
-          Last_Name: data.Last_Name || '',
-          Email: teacherEmail 
-        });
-      } catch (error) {
-        setError("Error fetching teacher details: " + error.message);
-      } finally {
-        setIsLoading(false);
-      }
+    return () => {
+      clearTimeout(timer);
+      clearInterval(quoteTimer);
     };
-
-    fetchTeacherDetails();
   }, []);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-gray-600 font-medium">Loading your dashboard...</p>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-          <div className="text-red-600 mb-4">
-            <h2 className="text-xl font-semibold">Error Loading Dashboard</h2>
-            <p className="mt-2">{error}</p>
-          </div>
-          <Link href="/login">
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors">
-              Return to Login
-            </button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const features = [
+    {
+      icon: <Layout className="h-6 w-6" />,
+      title: "Course Management",
+      description: "Create and manage your online courses",
+      link: "/DeployCourses",
+      color: "bg-blue-500"
+    },
+    {
+      icon: <Users className="h-6 w-6" />,
+      title: "Student Overview",
+      description: "Track student progress and engagement",
+      link: "/Students",
+      color: "bg-green-500"
+    },
+    {
+      icon: <Book className="h-6 w-6" />,
+      title: "Learning Resources",
+      description: "Access teaching materials and guides",
+      link: "/Resources",
+      color: "bg-purple-500"
+    },
+    {
+      icon: <BookOpen className="h-6 w-6" />,
+      title: "My Courses",
+      description: "View and edit your active courses",
+      link: "/TeacherCourses",
+      color: "bg-indigo-500"
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-6 mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, {teacherDetails.First_Name || 'Teacher'}!
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Teacher Dashboard
           </h1>
-          <p className="text-blue-100">
-            Ready to empower your students with knowledge
+          <p className="text-xl text-gray-600">
+            Manage your courses and empower student learning
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Personal Information Card */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center gap-4 mb-6">
-              <User className="h-8 w-8 text-blue-500" />
-              <h2 className="text-2xl font-semibold">Personal Information</h2>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500">Full Name</p>
-                <p className="font-medium">
-                  {`${teacherDetails.First_Name || ''} ${teacherDetails.Last_Name || ''}`}
-                </p>
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {features.map((feature, index) => (
+            <Link href={feature.link} key={index}>
+              <div className="group hover:transform hover:scale-105 transition-all duration-200">
+                <div className="bg-white rounded-xl shadow-lg p-6 h-full border border-gray-100 hover:border-blue-200 transition-colors">
+                  <div className={`${feature.color} text-white p-3 rounded-lg inline-block mb-4`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p className="font-medium">{teacherDetails.Email || 'Not provided'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Teaching Overview Card */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center gap-4 mb-6">
-              <GraduationCap className="h-8 w-8 text-green-500" />
-              <h2 className="text-2xl font-semibold">Teaching Overview</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <BookOpen className="h-6 w-6 text-blue-500 mb-2" />
-                <p className="text-sm text-gray-500">Deployed Courses</p>
-                <p className="text-2xl font-bold text-blue-600">3</p> {/* Placeholder value */}
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <GraduationCap className="h-6 w-6 text-green-500 mb-2" />
-                <p className="text-sm text-gray-500">Active Students</p>
-                <p className="text-2xl font-bold text-green-600">25</p> {/* Placeholder value */}
-              </div>
-            </div>
-          </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-4 justify-center">
-          <Link href="/DeployCourses">
-            <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors">
-              Deploy Courses
-            </button>
-          </Link>
-          <Link href="/TeacherCourses">
-            <button className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition-colors">
-              My Courses
-            </button>
-          </Link>
+        {/* Quotes Section (replacing Quick Actions) */}
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-2xl mx-auto">
+          <div className="animate-fade-in transition-opacity duration-500">
+            <p className="text-xl text-gray-800 italic mb-4">
+              "{quotes[currentQuoteIndex].text}"
+            </p>
+            <p className="text-gray-600 font-medium">
+              — {quotes[currentQuoteIndex].author}
+            </p>
+          </div>
         </div>
       </div>
     </div>

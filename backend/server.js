@@ -122,41 +122,6 @@ app.post('/upload-assignment/:courseId', upload.single('pdf'), (req, res) => {
   });
 });
 
-app.get('/Assignments/:courseId', (req, res) => {
-  const { courseId } = req.params;
-  const sql = "SELECT * FROM Assignments WHERE Course_ID = ? ORDER BY Due_Date ASC";
-
-  db.query(sql, [courseId], (err, results) => {
-    if (err) {
-      console.error("Error fetching assignments:", err);
-      return res.status(500).json({ error: "An error occurred while fetching assignments" });
-    }
-    res.status(200).json(results);
-  });
-});
-
-app.get('/download-assignment/:assignmentId', (req, res) => {
-  const { assignmentId } = req.params;
-
-  const sql = 'SELECT File_Path, File_Name FROM Assignments WHERE Assignment_ID = ?';
-
-  db.query(sql, [assignmentId], (err, results) => {
-    if (err || results.length === 0) {
-      return res.status(404).json({ error: 'Assignment not found' });
-    }
-
-    const filePath = results[0].File_Path;
-    const fileName = results[0].File_Name;
-
-    res.download(filePath, fileName, (err) => {
-      if (err) {
-        console.error('Error downloading file:', err);
-        return res.status(500).json({ error: 'Error downloading file' });
-      }
-    });
-  });
-});
-
 app.post("/Login", (req, res) => {
   const { Email, Password } = req.body;
 
@@ -459,165 +424,6 @@ app.get("/Assignments/:courseId", verifyEnrollment, (req, res) => {
   });
 });
 
-app.get("/AssignmentSubmissions/:assignmentId", (req, res) => {
-  const { assignmentId } = req.params;
-
-  const sql = `
-    SELECT 
-      s.Submission_ID,
-      s.Student_ID,
-      s.Submission_Date,
-      s.Submission_Content,
-      s.Score,
-      s.Feedback,
-      sp.First_Name,
-      sp.Last_Name,
-      sp.Email
-    FROM AssignmentSubmissions s
-    JOIN StudentProfile sp ON s.Student_ID = sp.ID
-    WHERE s.Assignment_ID = ?
-    ORDER BY s.Submission_Date DESC
-  `;
-
-  db.query(sql, [assignmentId], (err, results) => {
-    if (err) {
-      console.error("Error fetching assignment submissions:", err);
-      return res.status(500).json({
-        error: "An error occurred while fetching assignment submissions"
-      });
-    }
-    res.status(200).json(results);
-  });
-});
-
-
-
-app.post("/SubmitAssignment", (req, res) => {
-  const { Assignment_ID, Student_ID, Submission_Content } = req.body;
-  const Submission_Date = new Date();
-
-  const checkEnrollmentQuery = `
-    SELECT e.Enrollment_ID 
-    FROM Enrollments e
-    JOIN Assignments a ON e.Course_ID = a.Course_ID
-    WHERE a.Assignment_ID = ? AND e.Student_ID = ?
-  `;
-
-  db.query(checkEnrollmentQuery, [Assignment_ID, Student_ID], (checkErr, checkResults) => {
-    if (checkErr) {
-      console.error("Error checking enrollment:", checkErr);
-      return res.status(500).json({ error: "An error occurred while verifying enrollment" });
-    }
-
-    if (checkResults.length === 0) {
-      return res.status(403).json({ error: "Student is not enrolled in this course" });
-    }
-
-    const checkAssignmentQuery = `
-      SELECT * FROM Assignments 
-      WHERE Assignment_ID = ? AND Due_Date > NOW()
-    `;
-
-    db.query(checkAssignmentQuery, [Assignment_ID], (assignErr, assignResults) => {
-      if (assignErr) {
-        console.error("Error checking assignment:", assignErr);
-        return res.status(500).json({ error: "An error occurred while verifying assignment" });
-      }
-
-      if (assignResults.length === 0) {
-        return res.status(400).json({ error: "Assignment not found or past due date" });
-      }
-
-      const sql = `
-        INSERT INTO AssignmentSubmissions 
-        (Assignment_ID, Student_ID, Submission_Date, Submission_Content) 
-        VALUES (?, ?, ?, ?)
-      `;
-
-      db.query(
-        sql,
-        [Assignment_ID, Student_ID, Submission_Date, Submission_Content],
-        (err, result) => {
-          if (err) {
-            console.error("Error submitting assignment:", err);
-            return res.status(500).json({ error: "An error occurred while submitting the assignment" });
-          }
-
-          res.status(200).json({
-            message: "Assignment submitted successfully",
-            submissionId: result.insertId
-          });
-        }
-      );
-    });
-  });
-});
-
-app.put("/GradeAssignment/:submissionId", (req, res) => {
-  const { submissionId } = req.params;
-  const { Score, Feedback } = req.body;
-
-  const sql = `
-    UPDATE AssignmentSubmissions 
-    SET Score = ?, Feedback = ?
-    WHERE Submission_ID = ?
-  `;
-
-  db.query(sql, [Score, Feedback, submissionId], (err, result) => {
-    if (err) {
-      console.error("Error grading assignment:", err);
-      return res.status(500).json({ error: "An error occurred while grading the assignment" });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Submission not found" });
-    }
-
-    res.status(200).json({ message: "Assignment graded successfully" });
-  });
-});
-
-app.get("/CourseProgress/:courseId/:studentId", (req, res) => {
-  const { courseId, studentId } = req.params;
-
-  const sql = `
-    SELECT 
-      a.Assignment_ID,
-      a.Max_Score,
-      s.Score
-    FROM Assignments a
-    LEFT JOIN AssignmentSubmissions s 
-      ON a.Assignment_ID = s.Assignment_ID 
-      AND s.Student_ID = ?
-    WHERE a.Course_ID = ?
-  `;
-
-  db.query(sql, [studentId, courseId], (err, results) => {
-    if (err) {
-      console.error("Error fetching course progress:", err);
-      return res.status(500).json({ error: "An error occurred while fetching course progress" });
-    }
-
-    const totalAssignments = results.length;
-    const completedAssignments = results.filter(r => r.Score != null).length;
-    const progressPercentage = totalAssignments > 0
-      ? (completedAssignments / totalAssignments) * 100
-      : 0;
-
-    const scores = results.filter(r => r.Score != null).map(r => (r.Score / r.Max_Score) * 100);
-    const averageScore = scores.length > 0
-      ? scores.reduce((a, b) => a + b) / scores.length
-      : 0;
-
-    res.status(200).json({
-      totalAssignments,
-      completedAssignments,
-      progressPercentage,
-      averageScore
-    });
-  });
-});
-
 app.get("/Profile/:role/:email", (req, res) => {
   const { role, email } = req.params;
   const decodedEmail = decodeURIComponent(email);
@@ -840,7 +646,6 @@ app.get("/Enrollments/:email", async (req, res) => {
 
       const coursesWithStatus = results.map(course => ({
         ...course,
-        progress: 0,
         status: course.Status || 'Enrolled'
       }));
 
@@ -1141,7 +946,6 @@ app.get("/TeacherCourses/:email", (req, res) => {
     return res.status(200).json({ message: "Mentor profile setup completed successfully" });
   });
 });
-
 
 app.post("/SettingMentorProfile", (req, res) => {
   const {
@@ -1628,16 +1432,3 @@ const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-

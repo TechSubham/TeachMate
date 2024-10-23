@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Calendar, Clock } from 'lucide-react';
+import { BookOpen, Calendar, Clock, Target, ChevronRight, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EnrolledCourses() {
@@ -13,7 +13,6 @@ export default function EnrolledCourses() {
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
       try {
-        // Check for authentication
         const studentEmail = localStorage.getItem('userEmail');
         const userRole = localStorage.getItem('userRole');
 
@@ -25,7 +24,6 @@ export default function EnrolledCourses() {
           return;
         }
 
-        // Fetch enrolled courses
         const encodedEmail = encodeURIComponent(studentEmail);
         const response = await fetch(`http://localhost:5050/Enrollments/${encodedEmail}`, {
           headers: {
@@ -53,20 +51,24 @@ export default function EnrolledCourses() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="mt-4 text-gray-600">Loading your courses...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-white">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+        <p className="mt-6 text-lg text-gray-600 font-medium">Loading your learning journey...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-          <div className="text-red-600 mb-4">
-            <h2 className="text-xl font-semibold">Error</h2>
-            <p className="mt-2">{error}</p>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
+        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 border border-red-100">
+          <div className="text-center">
+            <div className="inline-block p-3 bg-red-100 rounded-full mb-4">
+              <Target className="h-8 w-8 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Access Error</h2>
+            <p className="text-gray-600">{error}</p>
+            <p className="mt-4 text-sm text-gray-500">Redirecting you to login...</p>
           </div>
         </div>
       </div>
@@ -74,60 +76,75 @@ export default function EnrolledCourses() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">My Enrolled Courses</h1>
-          <p className="text-gray-600 mt-2">View and manage your enrolled courses</p>
+        <div className="text-center mb-12">
+          <div className="inline-block p-3 bg-blue-100 rounded-full mb-4">
+            <GraduationCap className="h-8 w-8 text-blue-600" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">My Learning Journey</h1>
+          <p className="text-xl text-gray-600">Track your progress and continue learning</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enrolledCourses.map((course) => (
-            <div 
-              key={course.Course_ID}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-            >
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-500" />
-                  <h3 className="font-semibold text-lg">{course.Course_Title}</h3>
-                </div>
-                <p className="text-gray-600 mb-4 line-clamp-2">{course.Description}</p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Calendar className="h-4 w-4" />
-                    <span>Start: {new Date(course.Start_Date).toLocaleDateString()}</span>
+        {enrolledCourses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {enrolledCourses.map((course) => (
+              <div 
+                key={course.Course_ID}
+                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
+              >
+                <div className="h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h3 className="font-bold text-xl text-gray-900">{course.Course_Title}</h3>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4" />
-                    <span>{course.Duration_Hours} hours</span>
+                  
+                  <p className="text-gray-600 mb-6 line-clamp-2 min-h-[3rem]">{course.Description}</p>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span>Started {new Date(course.Start_Date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <span>{course.Duration_Hours} hours of content</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       course.status === 'Enrolled' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-yellow-100 text-yellow-700'
                     }`}>
                       {course.status}
                     </span>
-                    <Link href={`/CourseContent/${course.Course_ID}`}>
-                      <span className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                        View Course →
-                      </span>
+                    <Link 
+                      href={`/CourseContent/${course.Course_ID}`}
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold group"
+                    >
+                      Continue Learning
+                      <ChevronRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-xl shadow-md max-w-2xl mx-auto">
+            <div className="inline-block p-4 bg-blue-100 rounded-full mb-6">
+              <BookOpen className="h-8 w-8 text-blue-600" />
             </div>
-          ))}
-        </div>
-
-        {enrolledCourses.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="text-xl font-medium text-gray-600">No courses enrolled yet</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Start Your Learning Journey</h3>
+            <p className="text-gray-600 mb-8">Explore our courses and begin your educational adventure</p>
             <Link href="/DisplayCourses">
-              <button className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                Browse Courses
+              <button className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-200">
+                Browse Available Courses
               </button>
             </Link>
           </div>

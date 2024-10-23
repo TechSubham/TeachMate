@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 
 export default function ProfileSetup() {
   const [values, setValues] = useState({
@@ -14,7 +14,7 @@ export default function ProfileSetup() {
   });
 
   const [message, setMessage] = useState("");
-  const router = useRouter(); 
+  const router = useRouter();
 
   const handleChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
@@ -45,108 +45,111 @@ export default function ProfileSetup() {
     }
   };
 
+  const InputField = ({ label, name, type = "text", ...props }) => (
+    <div className="mb-6">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        id={name}
+        value={values[name]}
+        onChange={handleChange}
+        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+        {...props}
+      />
+    </div>
+  );
+
   return (
-    <div className="flex justify-center items-center bg-gray-100 min-h-screen">
-      <div className="bg-white p-8 rounded-md shadow-md w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Student Profile Setup</h2>
-        {message && (
-          <p
-            className={`text-center mb-4 ${
-              message.includes("Profile setup completed") ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="First_Name" className="block font-semibold mb-1">First Name</label>
-            <input
-              type="text"
-              name="First_Name"
-              value={values.First_Name}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="Enter first name"
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-xl mx-auto">
+        <div className="bg-white rounded-xl shadow-xl p-8 space-y-6">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Student Profile Setup</h2>
+            <p className="text-gray-600">Please fill in your information below</p>
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="Last_Name" className="block font-semibold mb-1">Last Name</label>
-            <input
-              type="text"
-              name="Last_Name"
-              value={values.Last_Name}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="Enter last name"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="Email" className="block font-semibold mb-1">Email</label>
-            <input
-              type="email"
-              name="Email"
-              value={values.Email}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="Enter email"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="Phone_Number" className="block font-semibold mb-1">Phone Number</label>
-            <input
-              type="tel"
-              name="Phone_Number"
-              value={values.Phone_Number}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="Enter phone number"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="DOB" className="block font-semibold mb-1">Date of Birth</label>
-            <input
-              type="date"
-              name="DOB"
-              value={values.DOB}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="Education_Level" className="block font-semibold mb-1">Education Level</label>
-            <select
-              name="Education_Level"
-              value={values.Education_Level}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              required
+          {message && (
+            <div
+              className={`p-4 rounded-lg ${
+                message.includes("Profile setup completed")
+                  ? "bg-green-50 text-green-800"
+                  : "bg-green-50 text-green-800"
+              } mb-6`}
             >
-              <option value="">Select Education Level</option>
-              <option value="High School">High School</option>
-              <option value="Undergraduate">Undergraduate</option>
-              <option value="Postgraduate">Postgraduate</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full py-2 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 transition-colors"
-          >
-            Submit Profile
-          </button>
-        </form>
+              {message}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InputField
+                label="First Name"
+                name="First_Name"
+                placeholder="Enter your first name"
+                required
+              />
+              <InputField
+                label="Last Name"
+                name="Last_Name"
+                placeholder="Enter your last name"
+                required
+              />
+            </div>
+
+            <InputField
+              label="Email Address"
+              name="Email"
+              type="email"
+              placeholder="you@example.com"
+              required
+            />
+
+            <InputField
+              label="Phone Number"
+              name="Phone_Number"
+              type="tel"
+              placeholder=" "
+              required
+            />
+
+            <InputField
+              label="Date of Birth"
+              name="DOB"
+              type="date"
+              required
+            />
+
+            <div className="mb-6">
+              <label htmlFor="Education_Level" className="block text-sm font-medium text-gray-700 mb-2">
+                Education Level
+              </label>
+              <select
+                name="Education_Level"
+                id="Education_Level"
+                value={values.Education_Level}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                required
+              >
+                <option value="">Select your education level</option>
+                <option value="High School">High School</option>
+                <option value="Undergraduate">Undergraduate</option>
+                <option value="Postgraduate">Postgraduate</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-[1.02]"
+            >
+              Complete Profile Setup
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

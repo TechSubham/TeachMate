@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function SetupProfile() {
   const [values, setValues] = useState({
@@ -53,127 +53,168 @@ export default function SetupProfile() {
   };
 
   return (
-    <div className="flex justify-center items-center bg-gray-100 min-h-screen">
-      <div className="bg-white p-8 rounded-md shadow-md w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center">Setup Your Profile</h2>
-        {message && (
-          <p
-            className={`text-center mb-4 ${
-              message.includes("Profile setup completed") ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block font-semibold mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={values.email}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="full_name" className="block font-semibold mb-1">Full Name</label>
-            <input
-              type="text"
-              name="full_name"
-              value={values.full_name}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+            <h2 className="text-3xl font-bold text-white text-center">
+              Setup Your Mentor Profile
+            </h2>
+            <p className="mt-2 text-blue-100 text-center">
+              Fill in your details to get started as a mentor
+            </p>
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="expertise" className="block font-semibold mb-1">Expertise</label>
-            <input
-              type="text"
-              name="expertise"
-              value={values.expertise}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              required
-            />
-          </div>
+          {/* Message Display */}
+          {message && (
+            <div className={`px-8 py-4 ${
+              message.includes("Profile setup completed")
+                ? "bg-green-50 text-green-700 border-l-4 border-green-500"
+                : "bg-green-50 text-green-700 border-l-4 border-green-500"
+            }`}>
+              <p className="text-center font-medium">{message}</p>
+            </div>
+          )}
 
-          <div className="mb-4">
-            <label htmlFor="experience_years" className="block font-semibold mb-1">Years of Experience</label>
-            <input
-              type="number"
-              name="experience_years"
-              value={values.experience_years}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              required
-            />
-          </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-8 py-6 space-y-6">
+            {/* Basic Information Section */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={values.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="full_name"
+                    value={values.full_name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="mb-4">
-            <label htmlFor="rate" className="block font-semibold mb-1">Hourly Price (₹)</label>
-            <input
-              type="number"
-              name="rate"
-              value={values.rate}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              required
-            />
-          </div>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Area of Expertise
+                  </label>
+                  <input
+                    type="text"
+                    name="expertise"
+                    value={values.expertise}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Years of Experience
+                  </label>
+                  <input
+                    type="number"
+                    name="experience_years"
+                    value={values.experience_years}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="mb-4">
-            <label htmlFor="bio" className="block font-semibold mb-1">Bio</label>
-            <textarea
-              name="bio"
-              value={values.bio}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder=" "
-              rows="4"
-              required
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hourly Rate (₹)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    name="rate"
+                    value={values.rate}
+                    onChange={handleChange}
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="mb-4">
-            <label htmlFor="linkedin" className="block font-semibold mb-1">LinkedIn Profile</label>
-            <input
-              type="url"
-              name="linkedin"
-              value={values.linkedin}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="https://www.linkedin.com/in/your-profile"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bio
+                </label>
+                <textarea
+                  name="bio"
+                  value={values.bio}
+                  onChange={handleChange}
+                  rows="4"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <label htmlFor="github" className="block font-semibold mb-1">GitHub Profile</label>
-            <input
-              type="url"
-              name="github"
-              value={values.github}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={handleChange}
-              placeholder="https://github.com/your-profile"
-            />
-          </div>
+            {/* Social Links Section */}
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Social Profiles</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    LinkedIn Profile
+                  </label>
+                  <input
+                    type="url"
+                    name="linkedin"
+                    value={values.linkedin}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="https://linkedin.com/in/your-profile"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    GitHub Profile
+                  </label>
+                  <input
+                    type="url"
+                    name="github"
+                    value={values.github}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="https://github.com/your-profile"
+                  />
+                </div>
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="w-full py-2 bg-green-500 text-white font-bold rounded-md hover:bg-green-600 transition-colors"
-          >
-            Submit Profile
-          </button>
-        </form>
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-0.5"
+              >
+                Complete Profile Setup
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

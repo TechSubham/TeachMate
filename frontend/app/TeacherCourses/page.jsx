@@ -95,108 +95,142 @@ export default function TeacherCourses() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading your courses...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-red-600">
-          <h2 className="text-xl font-bold mb-2">Error</h2>
-          <p>{error}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-red-600 text-2xl">⚠️</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
+            <p className="text-red-600">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 space-y-4 md:space-y-0">
-        <h1 className="text-3xl font-bold text-gray-800">My Courses</h1>
-        <button
-          onClick={() => router.push("/DeployCourses")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 min-w-[150px]"
-        >
-          Deploy New Course
-        </button>
-      </div>
-
-      {courses.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="mx-auto w-16 h-16 mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-2xl">📚</span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">No Courses Yet</h2>
-          <p className="text-gray-500">Start by deploying your first course!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <div 
-              key={course.Course_ID} 
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4">
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">My Courses</h1>
+              <p className="text-gray-600">Manage and monitor your teaching portfolio</p>
+            </div>
+            <button
+              onClick={() => router.push("/DeployCourses")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center gap-2 min-w-[180px] justify-center"
             >
-              <div className="p-6">
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-1">{course.Course_Title}</h2>
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    {course.Category}
-                  </span>
-                </div>
-                
-                <p className="text-gray-600 mb-4 line-clamp-2">{course.Description}</p>
-                
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center text-gray-600">
-                    <span className="mr-2">⏰</span>
-                    <span>{course.Duration_Hours} hours</span>
+              <span className="text-xl">+</span>
+              <span>Deploy New Course</span>
+            </button>
+          </div>
+        </div>
+
+        {courses.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+            <div className="mx-auto w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+              <span className="text-3xl">📚</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-3">No Courses Yet</h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">Start your teaching journey by deploying your first course. It only takes a few minutes to get started!</p>
+            <button
+              onClick={() => router.push("/DeployCourses")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 inline-flex items-center gap-2"
+            >
+              <span className="text-xl">+</span>
+              <span>Deploy Your First Course</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.map((course) => (
+              <div 
+                key={course.Course_ID} 
+                className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+              >
+                <div className="h-3 bg-blue-600"></div>
+                <div className="p-6">
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="inline-block bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full font-medium">
+                        {course.Category}
+                      </span>
+                      <span className="text-gray-400 text-sm">ID: {course.Course_ID}</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">{course.Course_Title}</h2>
+                    <p className="text-gray-600 line-clamp-2">{course.Description}</p>
                   </div>
                   
-                  <div className="flex items-center text-gray-600">
-                    <span className="mr-2">📅</span>
-                    <span className="text-sm">
-                      {new Date(course.Start_Date).toLocaleDateString()} - 
-                      {new Date(course.End_Date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center text-gray-600">
-                    <span className="mr-2">👥</span>
-                    <span>{course.enrolled_students || 0} students enrolled</span>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center text-gray-600 bg-gray-50 p-2 rounded">
+                      <span className="mr-3 text-lg">⏰</span>
+                      <span className="font-medium">{course.Duration_Hours} hours</span>
+                    </div>
+                    
+                    <div className="flex items-center text-gray-600 bg-gray-50 p-2 rounded">
+                      <span className="mr-3 text-lg">📅</span>
+                      <div className="text-sm">
+                        <div>Start: {new Date(course.Start_Date).toLocaleDateString()}</div>
+                        <div>End: {new Date(course.End_Date).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center text-gray-600 bg-gray-50 p-2 rounded">
+                      <span className="mr-3 text-lg">👥</span>
+                      <span className="font-medium">{course.enrolled_students || 0} students enrolled</span>
+                    </div>
                   </div>
 
                   {course.enrolled_student_names && (
-                    <div className="text-gray-600 text-sm">
-                      <span className="font-medium">Enrolled Students: </span>
-                      <span className="italic">
-                        {course.enrolled_student_names.split(',').join(', ')}
-                      </span>
+                    <div className="mb-6 p-3 bg-gray-50 rounded">
+                      <h3 className="font-medium text-gray-700 mb-2">Enrolled Students</h3>
+                      <div className="text-sm text-gray-600">
+                        {course.enrolled_student_names.split(',').map((name, index) => (
+                          <span 
+                            key={index}
+                            className="inline-block bg-white px-2 py-1 rounded mr-2 mb-2"
+                          >
+                            {name.trim()}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-                
-                <div className="flex space-x-3">
-                  <button 
-                    onClick={() => handleViewDetails(course.Course_ID)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors duration-200"
-                  >
-                    View Details
-                  </button>
-                  <button 
-                    onClick={() => handleEditCourse(course.Course_ID)}
-                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded transition-colors duration-200"
-                  >
-                    Edit Course
-                  </button>
+                  
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => handleViewDetails(course.Course_ID)}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-medium"
+                    >
+                      View Details
+                    </button>
+                    
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
