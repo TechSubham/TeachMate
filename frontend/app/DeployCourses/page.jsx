@@ -29,8 +29,7 @@ export default function DeployCourses() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    
-    // Add validation for dates
+   
     if (name === "End_Date" && values.Start_Date && new Date(value) < new Date(values.Start_Date)) {
       setError("End date cannot be earlier than start date");
       return;
@@ -41,7 +40,7 @@ export default function DeployCourses() {
       return;
     }
 
-    setError(""); // Clear error when input changes
+    setError(""); 
     setValues({ ...values, [name]: value });
   };
 

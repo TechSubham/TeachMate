@@ -27,10 +27,8 @@ const TeacherHomePage = () => {
   ];
 
   useEffect(() => {
-    // Simulate loading for demo purposes
     const timer = setTimeout(() => setIsLoading(false), 1000);
 
-    // Rotate quotes every 5 seconds
     const quoteTimer = setInterval(() => {
       setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
     }, 5000);
@@ -57,20 +55,6 @@ const TeacherHomePage = () => {
       description: "Create and manage your online courses",
       link: "/DeployCourses",
       color: "bg-blue-500"
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      title: "Student Overview",
-      description: "Track student progress and engagement",
-      link: "/Students",
-      color: "bg-green-500"
-    },
-    {
-      icon: <Book className="h-6 w-6" />,
-      title: "Learning Resources",
-      description: "Access teaching materials and guides",
-      link: "/Resources",
-      color: "bg-purple-500"
     },
     {
       icon: <BookOpen className="h-6 w-6" />,

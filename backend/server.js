@@ -64,13 +64,7 @@ db.connect((err) => {
 
   db.query(`
     CREATE TABLE IF NOT EXISTS CourseMaterials (
-      Material_ID INT PRIMARY KEY AUTO_INCREMENT,
-      Course_ID INT NOT NULL,
-      File_Name VARCHAR(255) NOT NULL,
-      File_Path VARCHAR(255) NOT NULL,
-      Upload_Date DATETIME DEFAULT CURRENT_TIMESTAMP,
-      Description TEXT,
-      FOREIGN KEY (Course_ID) REFERENCES Courses(Course_ID)
+      Material_ID INT PRIMARY KEY AUTO_INCREMENT,  Course_ID INT NOT NULL,  File_Name VARCHAR(255) NOT NULL,  File_Path VARCHAR(255) NOT NULL,  Upload_Date DATETIME DEFAULT CURRENT_TIMESTAMP,  Description TEXT,  FOREIGN KEY (Course_ID) REFERENCES Courses(Course_ID)
     )
   `);
 });
@@ -102,10 +96,7 @@ app.post('/upload-assignment/:courseId', upload.single('pdf'), (req, res) => {
   `;
 
   const values = [
-    courseId,
-    req.file.originalname,
-    req.file.path,
-    description
+    courseId,  req.file.originalname,  req.file.path,  description
   ];
 
   db.query(sql, values, (err, result) => {
@@ -118,6 +109,41 @@ app.post('/upload-assignment/:courseId', upload.single('pdf'), (req, res) => {
       message: 'Course material uploaded successfully',
       materialId: result.insertId,
       fileName: req.file.originalname
+    });
+  });
+});
+
+app.get('/Assignments/:courseId', (req, res) => {
+  const { courseId } = req.params;
+  const sql = "SELECT * FROM Assignments WHERE Course_ID = ? ORDER BY Due_Date ASC";
+
+  db.query(sql, [courseId], (err, results) => {
+    if (err) {
+      console.error("Error fetching assignments:", err);
+      return res.status(500).json({ error: "An error occurred while fetching assignments" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.get('/download-assignment/:assignmentId', (req, res) => {
+  const { assignmentId } = req.params;
+
+  const sql = 'SELECT File_Path, File_Name FROM Assignments WHERE Assignment_ID = ?';
+
+  db.query(sql, [assignmentId], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    const filePath = results[0].File_Path;
+    const fileName = results[0].File_Name;
+
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        return res.status(500).json({ error: 'Error downloading file' });
+      }
     });
   });
 });
@@ -157,12 +183,7 @@ app.post("/Signup", (req, res) => {
 
 app.post("/Profile/Student", (req, res) => {
   const {
-    First_Name,
-    Last_Name,
-    Email,
-    Phone_Number,
-    DOB,
-    Education_Level
+    First_Name,  Last_Name,  Email,  Phone_Number,  DOB,  Education_Level
   } = req.body;
 
   if (!First_Name || !Last_Name || !Email || !Phone_Number || !DOB || !Education_Level) {
@@ -174,12 +195,7 @@ app.post("/Profile/Student", (req, res) => {
     (First_Name, Last_Name, Email, Phone_Number, DOB, Education_Level) 
     VALUES (?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
-    First_Name = VALUES(First_Name),
-    Last_Name = VALUES(Last_Name),
-    Phone_Number = VALUES(Phone_Number),
-    DOB = VALUES(DOB),
-    Education_Level = VALUES(Education_Level)
-  `;
+    First_Name = VALUES(First_Name),  Last_Name = VALUES(Last_Name),  Phone_Number = VALUES(Phone_Number),  DOB = VALUES(DOB),  Education_Level = VALUES(Education_Level)`;
 
   const values = [First_Name, Last_Name, Email, Phone_Number, DOB, Education_Level];
 
@@ -260,7 +276,6 @@ const verifyEnrollment = async (req, res, next) => {
     return res.status(401).json({ error: "Student email not provided" });
   }
 
-  // First, get the student ID from their email
   const getStudentIdSql = "SELECT ID FROM StudentProfile WHERE Email = ?";
 
   db.query(getStudentIdSql, [studentEmail], (err, studentResults) => {
@@ -324,10 +339,7 @@ app.put("/ClassSchedules/:scheduleId", (req, res) => {
   const sql = `
     UPDATE ClassSchedules 
     SET 
-      Class_Date = ?,
-      Duration_Minutes = ?,
-      Description = ?,
-      Meeting_Link = ?
+      Class_Date = ?,  Duration_Minutes = ?,  Description = ?,  Meeting_Link = ?
     WHERE Schedule_ID = ?
   `;
 
@@ -424,6 +436,152 @@ app.get("/Assignments/:courseId", verifyEnrollment, (req, res) => {
   });
 });
 
+app.get("/AssignmentSubmissions/:assignmentId", (req, res) => {
+  const { assignmentId } = req.params;
+
+  const sql = `
+    SELECT 
+      s.Submission_ID, s.Student_ID, s.Submission_Date,s.Submission_Content,s.Score,s.Feedback,sp.First_Name,sp.Last_Name,sp.Email
+      FROM AssignmentSubmissions s
+    JOIN StudentProfile sp ON s.Student_ID = sp.ID
+    WHERE s.Assignment_ID = ?
+    ORDER BY s.Submission_Date DESC
+  `;
+
+  db.query(sql, [assignmentId], (err, results) => {
+    if (err) {
+      console.error("Error fetching assignment submissions:", err);
+      return res.status(500).json({
+        error: "An error occurred while fetching assignment submissions"
+      });
+    }
+    res.status(200).json(results);
+  });
+});
+
+
+
+app.post("/SubmitAssignment", (req, res) => {
+  const { Assignment_ID, Student_ID, Submission_Content } = req.body;
+  const Submission_Date = new Date();
+
+  const checkEnrollmentQuery = `
+    SELECT e.Enrollment_ID 
+    FROM Enrollments e
+    JOIN Assignments a ON e.Course_ID = a.Course_ID
+    WHERE a.Assignment_ID = ? AND e.Student_ID = ?
+  `;
+
+  db.query(checkEnrollmentQuery, [Assignment_ID, Student_ID], (checkErr, checkResults) => {
+    if (checkErr) {
+      console.error("Error checking enrollment:", checkErr);
+      return res.status(500).json({ error: "An error occurred while verifying enrollment" });
+    }
+
+    if (checkResults.length === 0) {
+      return res.status(403).json({ error: "Student is not enrolled in this course" });
+    }
+
+    const checkAssignmentQuery = `
+      SELECT * FROM Assignments 
+      WHERE Assignment_ID = ? AND Due_Date > NOW()
+    `;
+
+    db.query(checkAssignmentQuery, [Assignment_ID], (assignErr, assignResults) => {
+      if (assignErr) {
+        console.error("Error checking assignment:", assignErr);
+        return res.status(500).json({ error: "An error occurred while verifying assignment" });
+      }
+
+      if (assignResults.length === 0) {
+        return res.status(400).json({ error: "Assignment not found or past due date" });
+      }
+
+      const sql = `
+        INSERT INTO AssignmentSubmissions 
+        (Assignment_ID, Student_ID, Submission_Date, Submission_Content) 
+        VALUES (?, ?, ?, ?)
+      `;
+
+      db.query(
+        sql,
+        [Assignment_ID, Student_ID, Submission_Date, Submission_Content],
+        (err, result) => {
+          if (err) {
+            console.error("Error submitting assignment:", err);
+            return res.status(500).json({ error: "An error occurred while submitting the assignment" });
+          }
+
+          res.status(200).json({
+            message: "Assignment submitted successfully",
+            submissionId: result.insertId
+          });
+        }
+      );
+    });
+  });
+});
+
+app.put("/GradeAssignment/:submissionId", (req, res) => {
+  const { submissionId } = req.params;
+  const { Score, Feedback } = req.body;
+
+  const sql = `
+    UPDATE AssignmentSubmissions 
+    SET Score = ?, Feedback = ?
+    WHERE Submission_ID = ?
+  `;
+
+  db.query(sql, [Score, Feedback, submissionId], (err, result) => {
+    if (err) {
+      console.error("Error grading assignment:", err);
+      return res.status(500).json({ error: "An error occurred while grading the assignment" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Submission not found" });
+    }
+
+    res.status(200).json({ message: "Assignment graded successfully" });
+  });
+});
+
+app.get("/CourseProgress/:courseId/:studentId", (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  const sql = `
+    SELECT 
+      a.Assignment_ID,a.Max_Score,s.Score
+    FROM Assignments a
+    LEFT JOIN AssignmentSubmissions s 
+      ON a.Assignment_ID = s.Assignment_ID 
+      AND s.Student_ID = ?
+    WHERE a.Course_ID = ?
+  `;
+
+  db.query(sql, [studentId, courseId], (err, results) => {
+    if (err) {
+      console.error("Error fetching course progress:", err);
+      return res.status(500).json({ error: "An error occurred while fetching course progress" });
+    }
+
+    const totalAssignments = results.length;
+    const completedAssignments = results.filter(r => r.Score != null).length;
+    const progressPercentage = totalAssignments > 0
+      ? (completedAssignments / totalAssignments) * 100
+      : 0;
+
+    const scores = results.filter(r => r.Score != null).map(r => (r.Score / r.Max_Score) * 100);
+    const averageScore = scores.length > 0
+      ? scores.reduce((a, b) => a + b) / scores.length
+      : 0;
+
+    res.status(200).json({
+      totalAssignments,completedAssignments,  progressPercentage,  averageScore
+    });
+  });
+});
+
 app.get("/Profile/:role/:email", (req, res) => {
   const { role, email } = req.params;
   const decodedEmail = decodeURIComponent(email);
@@ -467,13 +625,7 @@ app.get("/Profile/Student/:email", (req, res) => {
   console.log("Fetching student profile for email:", email);
 
   const sql = `
-    SELECT 
-      First_Name, 
-      Last_Name, 
-      Email, 
-      Phone_Number, 
-      DOB, 
-      Education_Level 
+    SELECT First_Name,Last_Name,Email,Phone_Number,DOB,Education_Level 
     FROM StudentProfile 
     WHERE Email = ?
   `;
@@ -503,18 +655,7 @@ app.get("/Profile/Student/:email", (req, res) => {
 
 app.post("/Profile/Teacher", (req, res) => {
   const {
-    Name,
-    Email,
-    Password,
-    PhoneNumber,
-    Gender,
-    DateOfBirth,
-    Address,
-    SubjectsTaught,
-    Qualification,
-    YearsOfExperience,
-    Bio,
-    ProfilePicture
+    Name,Email,Password,PhoneNumber,Gender,DateOfBirth,Address,SubjectsTaught,Qualification,YearsOfExperience,Bio,ProfilePicture
   } = req.body;
 
   if (!Name || !Email || !Password || !Gender || !Qualification) {
@@ -529,18 +670,7 @@ app.post("/Profile/Teacher", (req, res) => {
      `;
 
   const values = [
-    Name,
-    Email,
-    Password,
-    PhoneNumber,
-    Gender,
-    DateOfBirth,
-    Address,
-    SubjectsTaught,
-    Qualification,
-    YearsOfExperience,
-    Bio,
-    ProfilePicture
+    Name,Email,Password,PhoneNumber,Gender,DateOfBirth,Address,SubjectsTaught,Qualification,YearsOfExperience,Bio,ProfilePicture
   ];
 
   db.query(sql, values, (err, results) => {
@@ -622,16 +752,7 @@ app.get("/Enrollments/:email", async (req, res) => {
 
     const sql = `
       SELECT 
-        e.Enrollment_ID,
-        e.Course_ID,
-        e.Enrollment_Date,
-        e.Status,
-        c.Course_Title,
-        c.Description,
-        c.Category,
-        c.Duration_Hours,
-        c.Start_Date,
-        c.End_Date
+        e.Enrollment_ID, e.Course_ID,e.Enrollment_Date,e.Status,c.Course_Title,c.Description,c.Category,c.Duration_Hours,c.Start_Date,c.End_Date
       FROM Enrollments e
       INNER JOIN Courses c ON e.Course_ID = c.Course_ID
       WHERE e.Student_ID = ?
@@ -646,6 +767,7 @@ app.get("/Enrollments/:email", async (req, res) => {
 
       const coursesWithStatus = results.map(course => ({
         ...course,
+        progress: 0,
         status: course.Status || 'Enrolled'
       }));
 
@@ -658,11 +780,7 @@ app.get("/Enrollments/:userId", (req, res) => {
   const userId = req.params.userId;
   const sql = `
     SELECT 
-      e.Enrollment_ID, 
-      e.Student_ID, 
-      e.Course_ID, 
-      e.Enrollment_Date, 
-      c.Course_Title
+      e.Enrollment_ID, e.Student_ID, e.Course_ID,e.Enrollment_Date, c.Course_Title
     FROM 
       Enrollments e
     JOIN 
@@ -682,13 +800,7 @@ app.get("/Enrollments/:userId", (req, res) => {
 
 app.post("/DeployCourses", (req, res) => {
   const {
-    Course_Title,
-    Description,
-    Category,
-    Duration_Hours,
-    Start_Date,
-    End_Date,
-    Teacher_Email
+    Course_Title,Description,Category,Duration_Hours,Start_Date,End_Date,Teacher_Email
   } = req.body;
 
   if (!Course_Title || !Description || !Category || !Duration_Hours || !Start_Date || !End_Date || !Teacher_Email) {
@@ -697,24 +809,12 @@ app.post("/DeployCourses", (req, res) => {
 
   const sql = `
     INSERT INTO Courses (
-      Course_Title,
-      Description,
-      Category,
-      Duration_Hours,
-      Start_Date,
-      End_Date,
-      Teacher_Email
+      Course_Title,Description,Category,Duration_Hours,Start_Date,End_Date,Teacher_Email
     ) VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
-    Course_Title,
-    Description,
-    Category,
-    Duration_Hours,
-    Start_Date,
-    End_Date,
-    Teacher_Email
+    Course_Title,Description,Category,Duration_Hours,Start_Date,End_Date,Teacher_Email
   ];
 
   db.query(sql, values, (err, result) => {
@@ -758,17 +858,16 @@ app.get("/Courses", (req, res) => {
   });
 });
 
-
 app.put("/Enrollments/:enrollmentId/status", async (req, res) => {
   const { enrollmentId } = req.params;
   const { status } = req.body;
-  
+
   const sql = `
   UPDATE Enrollments 
   SET Status = ?
   WHERE Enrollment_ID = ?
   `;
-  
+
   try {
     db.query(sql, [status, enrollmentId], (err, result) => {
       if (err) {
@@ -777,13 +876,13 @@ app.put("/Enrollments/:enrollmentId/status", async (req, res) => {
           error: "An error occurred while updating enrollment status"
         });
       }
-      
+
       if (result.affectedRows === 0) {
         return res.status(404).json({
           error: "Enrollment not found"
         });
       }
-      
+
       res.status(200).json({
         message: "Enrollment status updated successfully"
       });
@@ -798,7 +897,7 @@ app.put("/Enrollments/:enrollmentId/status", async (req, res) => {
 
 app.get("/TeacherCourses/:email", (req, res) => {
   const teacherEmail = decodeURIComponent(req.params.email);
-  
+
   const sql = `
   SELECT 
   c.*,
@@ -812,72 +911,72 @@ app.get("/TeacherCourses/:email", (req, res) => {
     c.Duration_Hours, c.Start_Date, c.End_Date, c.Teacher_Email
     ORDER BY c.Start_Date DESC
     `;
-    
-    db.query(sql, [teacherEmail], (err, results) => {
+
+  db.query(sql, [teacherEmail], (err, results) => {
+    if (err) {
+      console.error("Error fetching teacher courses:", err);
+      return res.status(500).json({ error: "An error occurred while fetching courses" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.get("/VerifyCourseOwnership/:courseId/:teacherEmail", (req, res) => {
+  const { courseId, teacherEmail } = req.params;
+
+  const sql = "SELECT COUNT(*) as count FROM Courses WHERE Course_ID = ? AND Teacher_Email = ?";
+
+  db.query(sql, [courseId, decodeURIComponent(teacherEmail)], (err, results) => {
+    if (err) {
+      console.error("Error verifying course ownership:", err);
+      return res.status(500).json({ error: "An error occurred while verifying course ownership" });
+    }
+
+    res.status(200).json({
+      isOwner: results[0].count > 0
+    });
+  });
+});
+
+app.get('/CourseMaterials/:courseId', verifyEnrollment, (req, res) => {
+  const { courseId } = req.params;
+  const sql = "SELECT * FROM CourseMaterials WHERE Course_ID = ? ORDER BY Upload_Date DESC";
+
+  db.query(sql, [courseId], (err, results) => {
+    if (err) {
+      console.error("Error fetching course materials:", err);
+      return res.status(500).json({ error: "An error occurred while fetching course materials" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+app.get('/download-material/:materialId', verifyEnrollment, (req, res) => {
+  const { materialId } = req.params;
+
+  const sql = 'SELECT File_Path, File_Name FROM CourseMaterials WHERE Material_ID = ?';
+
+  db.query(sql, [materialId], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).json({ error: 'Material not found' });
+    }
+
+    const filePath = results[0].File_Path;
+    const fileName = results[0].File_Name;
+
+    res.download(filePath, fileName, (err) => {
       if (err) {
-        console.error("Error fetching teacher courses:", err);
-        return res.status(500).json({ error: "An error occurred while fetching courses" });
+        console.error('Error downloading file:', err);
+        return res.status(500).json({ error: 'Error downloading file' });
       }
-      res.status(200).json(results);
     });
   });
-  
-  app.get("/VerifyCourseOwnership/:courseId/:teacherEmail", (req, res) => {
-    const { courseId, teacherEmail } = req.params;
-    
-    const sql = "SELECT COUNT(*) as count FROM Courses WHERE Course_ID = ? AND Teacher_Email = ?";
-    
-    db.query(sql, [courseId, decodeURIComponent(teacherEmail)], (err, results) => {
-      if (err) {
-        console.error("Error verifying course ownership:", err);
-        return res.status(500).json({ error: "An error occurred while verifying course ownership" });
-      }
-      
-      res.status(200).json({
-        isOwner: results[0].count > 0
-      });
-    });
-  });
-  
-  app.get('/CourseMaterials/:courseId', verifyEnrollment, (req, res) => {
-    const { courseId } = req.params;
-    const sql = "SELECT * FROM CourseMaterials WHERE Course_ID = ? ORDER BY Upload_Date DESC";
-    
-    db.query(sql, [courseId], (err, results) => {
-      if (err) {
-        console.error("Error fetching course materials:", err);
-        return res.status(500).json({ error: "An error occurred while fetching course materials" });
-      }
-      res.status(200).json(results);
-    });
-  });
-  
-  app.get('/download-material/:materialId', verifyEnrollment, (req, res) => {
-    const { materialId } = req.params;
-    
-    const sql = 'SELECT File_Path, File_Name FROM CourseMaterials WHERE Material_ID = ?';
-    
-    db.query(sql, [materialId], (err, results) => {
-      if (err || results.length === 0) {
-        return res.status(404).json({ error: 'Material not found' });
-      }
-      
-      const filePath = results[0].File_Path;
-      const fileName = results[0].File_Name;
-      
-      res.download(filePath, fileName, (err) => {
-        if (err) {
-          console.error('Error downloading file:', err);
-          return res.status(500).json({ error: 'Error downloading file' });
-        }
-      });
-    });
-  });
-  
-  app.get("/Enrollments/:courseId/students", (req, res) => {
-    const { courseId } = req.params;
-    
-    const sql = `
+});
+
+app.get("/Enrollments/:courseId/students", (req, res) => {
+  const { courseId } = req.params;
+
+  const sql = `
     SELECT 
     s.*,
     e.Enrollment_Date
@@ -886,36 +985,30 @@ app.get("/TeacherCourses/:email", (req, res) => {
     WHERE e.Course_ID = ?
     ORDER BY e.Enrollment_Date DESC
     `;
-    
-    db.query(sql, [courseId], (err, results) => {
-      if (err) {
-        console.error("Error fetching enrolled students:", err);
-        return res.status(500).json({ error: "An error occurred while fetching enrolled students" });
-      }
-      res.status(200).json(results);
-    });
+
+  db.query(sql, [courseId], (err, results) => {
+    if (err) {
+      console.error("Error fetching enrolled students:", err);
+      return res.status(500).json({ error: "An error occurred while fetching enrolled students" });
+    }
+    res.status(200).json(results);
   });
-  
-  app.get("/MentorDisplay", (req , res)=> {
-    const sql = "SELECT * FROM mentors";
-  
-    db.query(sql,(err, results)=>{
-      if(err){
-        console.error("Error fetching mentors:", err);
-        return res.status(500).json({ error: "An error occurred while fetching mentors" });
-      }
-      res.status(200).json(results);
-    })
+});
+
+app.get("/MentorDisplay", (req, res) => {
+  const sql = "SELECT * FROM mentors";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching mentors:", err);
+      return res.status(500).json({ error: "An error occurred while fetching mentors" });
+    }
+    res.status(200).json(results);
   })
-  app.post("/Profile/Mentor", (req, res) => {
-    const {
-      FullName,
-      Email,
-      Expertise,
-      Bio,
-      ExperienceYears,
-      Education_Level,
-      Rate
+})
+app.post("/Profile/Mentor", (req, res) => {
+  const {
+    FullName,Email,Expertise,Bio,ExperienceYears,Education_Level,Rate
   } = req.body;
 
   if (!FullName || !Email || !Expertise || !ExperienceYears || !Education_Level || !Rate) {
@@ -949,14 +1042,7 @@ app.get("/TeacherCourses/:email", (req, res) => {
 
 app.post("/SettingMentorProfile", (req, res) => {
   const {
-    email,
-    full_name,
-    expertise,
-    experience_years,
-    rate,
-    bio,
-    linkedin,
-    github
+    email,full_name,expertise,experience_years,rate,bio,linkedin,github
   } = req.body;
 
   if (!email || !full_name || !expertise || !experience_years || !rate || !bio || !linkedin || !github) {
@@ -968,31 +1054,10 @@ app.post("/SettingMentorProfile", (req, res) => {
     (email, full_name, expertise, experience_years, rate, bio, linkedin, github)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
-    full_name = ?,
-    expertise = ?,
-    experience_years = ?,
-    rate = ?,
-    bio = ?,
-    linkedin = ?,
-    github = ?
-  `;
+    full_name = ?,expertise = ?,experience_years = ?,rate = ?,bio = ?,linkedin = ?,github = ?`;
 
   const values = [
-    email,
-    full_name,
-    expertise,
-    experience_years,
-    rate,
-    bio,
-    linkedin,
-    github,
-    full_name,
-    expertise,
-    experience_years,
-    rate,
-    bio,
-    linkedin,
-    github
+    email, full_name, expertise, experience_years, rate, bio, linkedin, github, full_name, expertise, experience_years, rate, bio, linkedin, github
   ];
 
   db.query(sql, values, (err, results) => {
@@ -1020,12 +1085,7 @@ app.get("/Profile/Mentor/:email", (req, res) => {
 
   const sql = `
     SELECT 
-      FullName,
-      Email,
-      Expertise,
-      Bio,
-      ExperienceYears,
-      Rate
+      FullName,Email,Expertise,Bio,ExperienceYears,Rate
     FROM MentorProfile 
     WHERE Email = ?
   `;
@@ -1133,12 +1193,7 @@ app.get("/MentorStudents/:mentorEmail", (req, res) => {
 
 app.post("/ScheduleMentorClass", (req, res) => {
   const {
-    mentor_email,
-    student_email,
-    class_date,
-    duration_minutes,
-    description,
-    meeting_link,
+    mentor_email, student_email, class_date, duration_minutes, description, meeting_link,
   } = req.body;
 
   if (!mentor_email || !student_email || !class_date || !duration_minutes) {
@@ -1184,20 +1239,14 @@ app.post("/ScheduleMentorClass", (req, res) => {
           VALUES (?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [
-          mentor_email,
-          student_email,
-          class_date,
-          duration_minutes,
-          description || null,
-          meeting_link || null,
+        const values = [  mentor_email,  student_email,  class_date,  duration_minutes,  description || null,  meeting_link || null,
         ];
 
         db.query(insertSQL, values, (insertErr, insertResults) => {
           if (insertErr) {
             console.error("Error scheduling class:", insertErr);
-            return res.status(500).json({ 
-              error: "An error occurred while scheduling the class" 
+            return res.status(500).json({
+              error: "An error occurred while scheduling the class"
             });
           }
           return res.status(200).json({
@@ -1215,12 +1264,7 @@ app.get("/MentorSchedules/:mentorEmail/:studentEmail", (req, res) => {
 
   const sql = `
     SELECT 
-      Schedule_ID,
-      Class_Date,
-      Duration_Minutes,
-      Description,
-      Meeting_Link,
-      Created_At
+      Schedule_ID,  Class_Date,  Duration_Minutes,  Description,  Meeting_Link,  Created_At
     FROM mentor_schedules
     WHERE mentor_email = ? AND student_email = ?
     ORDER BY Class_Date ASC
@@ -1229,8 +1273,8 @@ app.get("/MentorSchedules/:mentorEmail/:studentEmail", (req, res) => {
   db.query(sql, [mentorEmail, studentEmail], (err, results) => {
     if (err) {
       console.error("Error fetching scheduled classes:", err);
-      return res.status(500).json({ 
-        error: "An error occurred while fetching scheduled classes" 
+      return res.status(500).json({
+        error: "An error occurred while fetching scheduled classes"
       });
     }
 
@@ -1243,10 +1287,7 @@ app.get("/MentorUpcomingClasses/:mentorEmail", (req, res) => {
 
   const sql = `
     SELECT 
-      ms.*,
-      sp.First_Name,
-      sp.Last_Name,
-      sp.Email as student_email
+      ms.*,  sp.First_Name,  sp.Last_Name,  sp.Email as student_email
     FROM mentor_schedules ms
     JOIN StudentProfile sp ON ms.student_email = sp.Email
     WHERE ms.mentor_email = ?
@@ -1257,8 +1298,8 @@ app.get("/MentorUpcomingClasses/:mentorEmail", (req, res) => {
   db.query(sql, [mentorEmail], (err, results) => {
     if (err) {
       console.error("Error fetching upcoming classes:", err);
-      return res.status(500).json({ 
-        error: "An error occurred while fetching upcoming classes" 
+      return res.status(500).json({
+        error: "An error occurred while fetching upcoming classes"
       });
     }
 
@@ -1269,53 +1310,43 @@ app.get("/MentorUpcomingClasses/:mentorEmail", (req, res) => {
 app.put("/UpdateScheduledClass/:scheduleId", (req, res) => {
   const scheduleId = req.params.scheduleId;
   const {
-    class_date,
-    duration_minutes,
-    description,
-    meeting_link,
+    class_date,  duration_minutes,  description,  meeting_link,
   } = req.body;
 
   const sql = `
     UPDATE mentor_schedules
     SET 
-      class_date = ?,
-      duration_minutes = ?,
-      description = ?,
-      meeting_link = ?
+      class_date = ?,  duration_minutes = ?,  description = ?,  meeting_link = ?
     WHERE Schedule_ID = ?
   `;
 
   const values = [
-    class_date,
-    duration_minutes,
-    description || null,
-    meeting_link || null,
-    scheduleId,
+    class_date, duration_minutes, description || null, meeting_link || null, scheduleId,
   ];
 
   db.query(sql, values, (err, results) => {
     if (err) {
       console.error("Error updating scheduled class:", err);
-      return res.status(500).json({ 
-        error: "An error occurred while updating the scheduled class" 
+      return res.status(500).json({
+        error: "An error occurred while updating the scheduled class"
       });
     }
 
     if (results.affectedRows === 0) {
-      return res.status(404).json({ 
-        error: "Scheduled class not found or you don't have permission to update it" 
+      return res.status(404).json({
+        error: "Scheduled class not found or you don't have permission to update it"
       });
     }
 
-    res.status(200).json({ 
-      message: "Scheduled class updated successfully" 
+    res.status(200).json({
+      message: "Scheduled class updated successfully"
     });
   });
 });
 
 app.delete("/CancelScheduledClass/:scheduleId", (req, res) => {
   const scheduleId = req.params.scheduleId;
-  const { mentor_email } = req.body; 
+  const { mentor_email } = req.body;
 
   const sql = `
     DELETE FROM mentor_schedules 
@@ -1325,19 +1356,19 @@ app.delete("/CancelScheduledClass/:scheduleId", (req, res) => {
   db.query(sql, [scheduleId, mentor_email], (err, results) => {
     if (err) {
       console.error("Error canceling scheduled class:", err);
-      return res.status(500).json({ 
-        error: "An error occurred while canceling the scheduled class" 
+      return res.status(500).json({
+        error: "An error occurred while canceling the scheduled class"
       });
     }
 
     if (results.affectedRows === 0) {
-      return res.status(404).json({ 
-        error: "Scheduled class not found or you don't have permission to cancel it" 
+      return res.status(404).json({
+        error: "Scheduled class not found or you don't have permission to cancel it"
       });
     }
 
-    res.status(200).json({ 
-      message: "Scheduled class canceled successfully" 
+    res.status(200).json({
+      message: "Scheduled class canceled successfully"
     });
   });
 });
@@ -1360,8 +1391,8 @@ app.get("/StudentUpcomingClasses/:studentEmail", (req, res) => {
   db.query(sql, [studentEmail], (err, results) => {
     if (err) {
       console.error("Error fetching student's upcoming classes:", err);
-      return res.status(500).json({ 
-        error: "An error occurred while fetching upcoming classes" 
+      return res.status(500).json({
+        error: "An error occurred while fetching upcoming classes"
       });
     }
 
@@ -1394,15 +1425,10 @@ app.post('/scheduleMeeting', (req, res) => {
 app.get('/scheduledSessions/:mentorEmail/:studentEmail', async (req, res) => {
   try {
     const { mentorEmail, studentEmail } = req.params;
-    
+
     const query = `
       SELECT 
-        id,
-        mentor_email,
-        student_email,
-        meeting_date,
-        meeting_link,
-        created_at
+        id, mentor_email, student_email, meeting_date, meeting_link, created_at
       FROM scheduled_meetings
       WHERE mentor_email = ? AND student_email = ?
       ORDER BY meeting_date ASC
@@ -1420,8 +1446,6 @@ app.get('/scheduledSessions/:mentorEmail/:studentEmail', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
