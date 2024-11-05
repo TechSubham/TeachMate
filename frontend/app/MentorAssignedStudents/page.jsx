@@ -1,4 +1,5 @@
 "use client"
+"use client"
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -63,6 +64,21 @@ export default function MentorDashboard() {
     }
   };
 
+  const handleRemoveStudent = async (student) => {
+    if (window.confirm(`Are you sure you want to remove ${student.First_Name} ${student.Last_Name}?`)) {
+      try {
+        const mentorEmail = localStorage.getItem('userEmail');
+        await axios.delete(`http://localhost:5050/mentor-assignments/${encodeURIComponent(student.Email)}/${encodeURIComponent(mentorEmail)}`);
+
+        setStudents(students.filter((s) => s.Email !== student.Email));
+        alert('Student removed successfully');
+      } catch (error) {
+        console.error('Error removing student:', error);
+        alert('Failed to remove student. Please try again.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
@@ -111,18 +127,24 @@ export default function MentorDashboard() {
                     </p>
                   )}
                   {student.Education_Level && (
-                    <p className="text-gray-600">
+                    <p className="text-gray -600">
                       <span className="font-medium">Education:</span> {student.Education_Level}
                     </p>
                   )}
                 </div>
                 
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-between">
                   <button
                     onClick={() => handleContactStudent(student)}
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
                   >
                     Contact Student
+                  </button>
+                  <button
+                    onClick={() => handleRemoveStudent(student)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+                  >
+                    Remove Student
                   </button>
                 </div>
               </div>

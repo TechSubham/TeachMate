@@ -995,6 +995,147 @@ app.get("/Enrollments/:courseId/students", (req, res) => {
   });
 });
 
+app.delete('/Enrollments/:courseId/:teacherEmail', (req, res) => {
+  const { courseId, teacherEmail } = req.params;
+
+  const sql = `
+    DELETE c
+    FROM Courses c
+    WHERE c.Course_ID = ? AND c.Teacher_Email = ?
+  `;
+
+  db.query(sql, [courseId, decodeURIComponent(teacherEmail)], (err, result) => {
+    if (err) {
+      console.error('Error deleting course:', err);
+      return res.status(500).json({ error: 'An error occurred while removing the course' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.status(200).json({ message: 'Course removed successfully' });
+  });
+});
+
+app.delete('/Enrollments/:courseId/:studentId', (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  const sql = 'DELETE FROM Enrollments WHERE Course_ID = ? AND Student_ID = ?';
+
+  db.query(sql, [courseId, studentId], (err, result) => {
+    if (err) {
+      console.error('Error deleting enrollment:', err);
+      return res.status(500).json({ error: 'An error occurred while removing the student' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Enrollment not found' });
+    }
+
+    res.status(200).json({ message: 'Student removed from the course successfully' });
+  });
+});
+
+
+
+app.delete('/scheduledMeeting/:studentEmail/:mentorEmail', (req, res) => {
+  const { studentEmail, mentorEmail } = req.params;
+
+  const sql = 'DELETE FROM mentor_meetings WHERE student_email = ? AND mentor_email = ?';
+
+  db.query(sql, [studentEmail, mentorEmail], (err, result) => {
+    if (err) {
+      console.error('Error deleting scheduled meeting:', err);
+      return res.status(500).json({ error: 'An error occurred while removing the scheduled meeting' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Scheduled meeting not found' });
+    }
+
+    res.status(200).json({ message: 'Scheduled meeting removed successfully' });
+  });
+});
+
+// Add this new endpoint to your backend code
+app.delete('/mentor-assignments/:studentEmail/:mentorEmail', (req, res) => {
+  const { studentEmail, mentorEmail } = req.params;
+  
+  const sql = 'DELETE FROM mentor_assignments WHERE student_email = ? AND mentor_email = ?';
+
+  db.query(sql, [studentEmail, mentorEmail], (err, result) => {
+    if (err) {
+      console.error('Error removing mentor assignment:', err);
+      return res.status(500).json({ 
+        error: 'An error occurred while removing the mentor assignment',
+        details: err.message 
+      });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        error: 'Mentor assignment not found',
+        studentEmail,
+        mentorEmail 
+      });
+    }
+
+    res.status(200).json({ 
+      message: 'Mentor assignment removed successfully',
+      studentEmail,
+      mentorEmail
+    });
+  });
+});
+
+app.delete('/AssignMentor/:studentEmail/:mentorEmail', (req, res) => {
+  const { studentEmail, mentorEmail } = req.params;
+
+  const sql = 'DELETE FROM mentor_assignments WHERE student_email = ? AND mentor_email = ?';
+
+  db.query(sql, [studentEmail, mentorEmail], (err, result) => {
+    if (err) {
+      console.error('Error removing mentor assignment:', err);
+      return res.status(500).json({ error: 'An error occurred while removing the mentor assignment' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Mentor assignment not found' });
+    }
+
+    res.status(200).json({ message: 'Mentor assignment removed successfully' });
+  });
+});
+
+app.delete('/Courses/:courseId', (req, res) => {
+  const { courseId } = req.params;
+
+  const sql = 'DELETE FROM Courses WHERE Course_ID = ?';
+
+  db.query(sql, [courseId], (err, result) => {
+    if (err) {
+      console.error('Error deleting course:', err);
+      return res.status(500).json({ error: 'An error occurred while deleting the course', details: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Delete all enrollments associated with the course
+    const deleteEnrollmentsSQL = 'DELETE FROM Enrollments WHERE Course_ID = ?';
+    db.query(deleteEnrollmentsSQL, [courseId], (err, _) => {
+      if (err) {
+        console.error('Error deleting course enrollments:', err);
+        return res.status(500).json({ error: 'An error occurred while deleting the course enrollments', details: err.message });
+      }
+
+      res.status(200).json({ message: 'Course deleted successfully' });
+    });
+  });
+});
+
 app.get("/MentorDisplay", (req, res) => {
   const sql = "SELECT * FROM mentors";
 
@@ -1186,6 +1327,47 @@ app.get("/MentorStudents/:mentorEmail", (req, res) => {
     if (err) {
       console.error("Error fetching mentor's students:", err);
       return res.status(500).json({ error: "An error occurred while fetching students" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// Backend API
+app.delete('/Enrollments/:courseId/:studentId', (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  const sql = 'DELETE FROM Enrollments WHERE Course_ID = ? AND Student_ID = ?';
+
+  db.query(sql, [courseId, studentId], (err, result) => {
+    if (err) {
+      console.error('Error deleting enrollment:', err);
+      return res.status(500).json({ error: 'An error occurred while removing the student' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Enrollment not found' });
+    }
+
+    res.status(200).json({ message: 'Student removed from the course successfully' });
+  });
+});
+
+app.get('/Enrollments/:courseId/students', (req, res) => {
+  const { courseId } = req.params;
+
+  const sql = `
+    SELECT 
+      s.ID, s.First_Name, s.Last_Name, s.Email, s.Phone_Number, s.Education_Level, e.Enrollment_Date
+    FROM StudentProfile s
+    JOIN Enrollments e ON s.ID = e.Student_ID
+    WHERE e.Course_ID = ?
+    ORDER BY e.Enrollment_Date DESC
+  `;
+
+  db.query(sql, [courseId], (err, results) => {
+    if (err) {
+      console.error('Error fetching enrolled students:', err);
+      return res.status(500).json({ error: 'An error occurred while fetching enrolled students' });
     }
     res.status(200).json(results);
   });

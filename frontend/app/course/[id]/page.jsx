@@ -9,7 +9,7 @@ export default function CourseDetails({ params }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [teacherEmail, setTeacherEmail] = useState(null);
-  const [enrolledStudents, setEnrolledStudents] = useState([]); 
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [newMaterial, setNewMaterial] = useState({
     title: "",
     description: "",
@@ -32,6 +32,31 @@ export default function CourseDetails({ params }) {
 
   const router = useRouter();
   const courseId = params.id;
+
+  const handleRemoveStudent = async (studentId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5050/Enrollments/${courseId}/${studentId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Remove the student from the local state
+        setEnrolledStudents(
+          enrolledStudents.filter((student) => student.ID !== studentId)
+        );
+        alert("Student removed from the course successfully");
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to remove student");
+      }
+    } catch (err) {
+      console.error("Error details:", err);
+      setError(err.message || "An error occurred while removing the student");
+    }
+  };
 
   useEffect(() => {
     const initializeData = async () => {
@@ -57,18 +82,19 @@ export default function CourseDetails({ params }) {
           return;
         }
 
-        const [courseResponse, schedulesResponse, assignmentsResponse, enrolledStudentsResponse] =
-          await Promise.all([
-            fetch(
-              `http://localhost:5050/TeacherCourses/${encodeURIComponent(
-                email
-              )}`
-            ),
-            fetch(`http://localhost:5050/ClassSchedules/${courseId}`),
-            fetch(`http://localhost:5050/Assignments/${courseId}`),
-            fetch(`http://localhost:5050/Enrollments/${courseId}/students`),
-
-          ]);
+        const [
+          courseResponse,
+          schedulesResponse,
+          assignmentsResponse,
+          enrolledStudentsResponse,
+        ] = await Promise.all([
+          fetch(
+            `http://localhost:5050/TeacherCourses/${encodeURIComponent(email)}`
+          ),
+          fetch(`http://localhost:5050/ClassSchedules/${courseId}`),
+          fetch(`http://localhost:5050/Assignments/${courseId}`),
+          fetch(`http://localhost:5050/Enrollments/${courseId}/students`),
+        ]);
 
         const courses = await courseResponse.json();
         const courseData = courses.find(
@@ -85,12 +111,12 @@ export default function CourseDetails({ params }) {
         const assignmentsData = await assignmentsResponse.json();
         const enrolledStudentsData = await enrolledStudentsResponse.json();
 
-
         setCourse(courseData);
         setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
         setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);
-        setEnrolledStudents(Array.isArray(enrolledStudentsData) ? enrolledStudentsData : []);
-
+        setEnrolledStudents(
+          Array.isArray(enrolledStudentsData) ? enrolledStudentsData : []
+        );
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load course data");
@@ -101,7 +127,6 @@ export default function CourseDetails({ params }) {
 
     initializeData();
   }, [courseId, router]);
-
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
@@ -159,7 +184,6 @@ export default function CourseDetails({ params }) {
     setFile(e.target.files[0]);
   };
 
-
   const handleMaterialUpload = async (e) => {
     e.preventDefault();
     try {
@@ -173,10 +197,13 @@ export default function CourseDetails({ params }) {
       formData.append("description", newMaterial.description);
       formData.append("pdf", file);
 
-      const response = await fetch(`http://localhost:5050/upload-assignment/${courseId}`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:5050/upload-assignment/${courseId}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -193,7 +220,9 @@ export default function CourseDetails({ params }) {
       alert("Course material uploaded successfully!");
     } catch (err) {
       console.error("Error details:", err);
-      setError(err.message || "An error occurred while uploading the course material");
+      setError(
+        err.message || "An error occurred while uploading the course material"
+      );
     }
   };
 
@@ -217,7 +246,10 @@ export default function CourseDetails({ params }) {
       }
 
       const dueDate = new Date(newAssignment.due_date);
-      const formattedDueDate = dueDate.toISOString().slice(0, 19).replace("T", " ");
+      const formattedDueDate = dueDate
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
 
       const formData = new FormData();
       formData.append("title", newAssignment.title);
@@ -226,17 +258,22 @@ export default function CourseDetails({ params }) {
       formData.append("maxScore", newAssignment.max_score);
       formData.append("pdf", file);
 
-      const response = await fetch(`http://localhost:5050/upload-assignment/${courseId}`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `http://localhost:5050/upload-assignment/${courseId}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to create assignment");
       }
 
-      const updatedAssignments = await fetch(`http://localhost:5050/Assignments/${courseId}`);
+      const updatedAssignments = await fetch(
+        `http://localhost:5050/Assignments/${courseId}`
+      );
       const assignmentsData = await updatedAssignments.json();
       setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);
 
@@ -252,7 +289,9 @@ export default function CourseDetails({ params }) {
       alert("Assignment created successfully!");
     } catch (err) {
       console.error("Error details:", err);
-      setError(err.message || "An error occurred while creating the assignment");
+      setError(
+        err.message || "An error occurred while creating the assignment"
+      );
     }
   };
 
@@ -287,320 +326,366 @@ export default function CourseDetails({ params }) {
   }
 
   return (
-      <div className="min-h-screen bg-gray-50">
-        {loading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen bg-gray-50">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
+            <p className="text-gray-600">{error}</p>
           </div>
-        ) : error ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-              <h2 className="text-2xl font-bold text-red-600 mb-2">Error</h2>
-              <p className="text-gray-600">{error}</p>
-            </div>
+        </div>
+      ) : !course ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Course Not Found
+            </h2>
+            <p className="text-gray-600">
+              The requested course could not be found.
+            </p>
           </div>
-        ) : !course ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Course Not Found</h2>
-              <p className="text-gray-600">The requested course could not be found.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="container mx-auto px-4 py-8 max-w-7xl">
-            {/* Course Header */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">{course.Course_Title}</h1>
-              <p className="text-lg text-gray-600 mb-6">{course.Description}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 w-32">Category:</span>
-                    <span className="font-medium text-gray-800">{course.Category}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-500 w-32">Duration:</span>
-                    <span className="font-medium text-gray-800">{course.Duration_Hours} hours</span>
-                  </div>
+        </div>
+      ) : (
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Course Header */}
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">
+              {course.Course_Title}
+            </h1>
+            <p className="text-lg text-gray-600 mb-6">{course.Description}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <span className="text-gray-500 w-32">Category:</span>
+                  <span className="font-medium text-gray-800">
+                    {course.Category}
+                  </span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 w-32">Start Date:</span>
-                    <span className="font-medium text-gray-800">
-                      {new Date(course.Start_Date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-gray-500 w-32">End Date:</span>
-                    <span className="font-medium text-gray-800">
-                      {new Date(course.End_Date).toLocaleDateString()}
-                    </span>
-                  </div>
+                <div className="flex items-center">
+                  <span className="text-gray-500 w-32">Duration:</span>
+                  <span className="font-medium text-gray-800">
+                    {course.Duration_Hours} hours
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <span className="text-gray-500 w-32">Start Date:</span>
+                  <span className="font-medium text-gray-800">
+                    {new Date(course.Start_Date).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-gray-500 w-32">End Date:</span>
+                  <span className="font-medium text-gray-800">
+                    {new Date(course.End_Date).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
-  
-            {/* Enrolled Students Section */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Enrolled Students</h2>
-              {enrolledStudents.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No students enrolled yet</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Phone Number
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Education Level
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Enrollment Date
-                        </th>
+          </div>
+
+          {/* Enrolled Students Section */}
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Enrolled Students
+            </h2>
+            {enrolledStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No students enrolled yet</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Phone Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Education Level
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Enrollment Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {enrolledStudents.map((student) => (
+                      <tr
+                        key={student.ID}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                          {student.First_Name} {student.Last_Name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {student.Email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {student.Phone_Number}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {student.Education_Level}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {new Date(
+                            student.Enrollment_Date
+                          ).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <button
+                            className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                            onClick={() => handleRemoveStudent(student.ID)}
+                          >
+                            Remove
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {enrolledStudents.map((student) => (
-                        <tr key={student.ID} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                            {student.First_Name} {student.Last_Name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {student.Email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {student.Phone_Number}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {student.Education_Level}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {new Date(student.Enrollment_Date).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-  
-            {/* Schedule Class Form */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Schedule Next Class</h2>
-              <form onSubmit={handleScheduleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Class Date and Time
-                    </label>
-                    <input
-                      type="datetime-local"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      value={newSchedule.class_date}
-                      onChange={(e) =>
-                        setNewSchedule({ ...newSchedule, class_date: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      value={newSchedule.duration_minutes}
-                      onChange={(e) =>
-                        setNewSchedule({
-                          ...newSchedule,
-                          duration_minutes: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Schedule Class Form */}
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Schedule Next Class
+            </h2>
+            <form onSubmit={handleScheduleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    rows="4"
-                    value={newSchedule.description}
-                    onChange={(e) =>
-                      setNewSchedule({ ...newSchedule, description: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meeting Link
+                    Class Date and Time
                   </label>
                   <input
-                    type="url"
+                    type="datetime-local"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={newSchedule.meeting_link}
+                    value={newSchedule.class_date}
                     onChange={(e) =>
-                      setNewSchedule({ ...newSchedule, meeting_link: e.target.value })
+                      setNewSchedule({
+                        ...newSchedule,
+                        class_date: e.target.value,
+                      })
                     }
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                >
-                  Schedule Class
-                </button>
-              </form>
-            </div>
-  
-            {/* Create Assignment Form */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Create Assignment</h2>
-              <form onSubmit={handleAssignmentSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={newAssignment.title}
-                    onChange={(e) =>
-                      setNewAssignment({ ...newAssignment, title: e.target.value })
-                    }
-                    placeholder="Enter assignment title"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
+                    Duration (minutes)
                   </label>
-                  <textarea
+                  <input
+                    type="number"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    rows="4"
-                    value={newAssignment.description}
+                    value={newSchedule.duration_minutes}
+                    onChange={(e) =>
+                      setNewSchedule({
+                        ...newSchedule,
+                        duration_minutes: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  rows="4"
+                  value={newSchedule.description}
+                  onChange={(e) =>
+                    setNewSchedule({
+                      ...newSchedule,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Meeting Link
+                </label>
+                <input
+                  type="url"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  value={newSchedule.meeting_link}
+                  onChange={(e) =>
+                    setNewSchedule({
+                      ...newSchedule,
+                      meeting_link: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Schedule Class
+              </button>
+            </form>
+          </div>
+
+          {/* Create Assignment Form */}
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Create Assignment
+            </h2>
+            <form onSubmit={handleAssignmentSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  value={newAssignment.title}
+                  onChange={(e) =>
+                    setNewAssignment({
+                      ...newAssignment,
+                      title: e.target.value,
+                    })
+                  }
+                  placeholder="Enter assignment title"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  rows="4"
+                  value={newAssignment.description}
+                  onChange={(e) =>
+                    setNewAssignment({
+                      ...newAssignment,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Enter assignment description"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Due Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    value={newAssignment.due_date}
                     onChange={(e) =>
                       setNewAssignment({
                         ...newAssignment,
-                        description: e.target.value,
+                        due_date: e.target.value,
                       })
                     }
-                    placeholder="Enter assignment description"
                     required
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Due Date
-                    </label>
-                    <input
-                      type="datetime-local"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      value={newAssignment.due_date}
-                      onChange={(e) =>
-                        setNewAssignment({
-                          ...newAssignment,
-                          due_date: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Score
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      value={newAssignment.max_score}
-                      onChange={(e) =>
-                        setNewAssignment({
-                          ...newAssignment,
-                          max_score: e.target.value,
-                        })
-                      }
-                      min="1"
-                      placeholder="Enter maximum score"
-                      required
-                    />
-                  </div>
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload PDF
+                    Maximum Score
                   </label>
                   <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileChange}
+                    type="number"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                >
-                  Create Assignment
-                </button>
-              </form>
-            </div>
-  
-            {/* Upload Course Material Form */}
-            <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Upload Course Material</h2>
-              <form onSubmit={handleMaterialUpload} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={newMaterial.title}
+                    value={newAssignment.max_score}
                     onChange={(e) =>
-                      setNewMaterial({ ...newMaterial, title: e.target.value })
-                    }
-                    placeholder="Enter material title"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    rows="4"
-                    value={newMaterial.description}
-                    onChange={(e) =>
-                      setNewMaterial({
-                        ...newMaterial,
-                        description: e.target.value,
+                      setNewAssignment({
+                        ...newAssignment,
+                        max_score: e.target.value,
                       })
                     }
-                    placeholder="Enter material description"
+                    min="1"
+                    placeholder="Enter maximum score"
                     required
                   />
                 </div>
-                <div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload PDF
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Create Assignment
+              </button>
+            </form>
+          </div>
+
+          {/* Upload Course Material Form */}
+          <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              Upload Course Material
+            </h2>
+            <form onSubmit={handleMaterialUpload} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  value={newMaterial.title}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, title: e.target.value })
+                  }
+                  placeholder="Enter material title"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  rows="4"
+                  value={newMaterial.description}
+                  onChange={(e) =>
+                    setNewMaterial({
+                      ...newMaterial,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Enter material description"
+                  required
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Upload PDF
                 </label>
