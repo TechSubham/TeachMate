@@ -85,14 +85,14 @@ const MentorHomepage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/MentorHomepage">
+              <Link href="/">
                 <span className="text-2xl font-bold text-indigo-600">TeachMate</span>
               </Link>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/MentorHomepage">
+              <Link href="/Homepage/Mentor">
                 <span className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                   Dashboard
                 </span>
@@ -102,14 +102,10 @@ const MentorHomepage = () => {
                   My Students
                 </span>
               </Link>
-              <Link href="/SettingMentorProfile">
-                <span className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Settings
-                </span>
-              </Link>
+              
               <button
                 onClick={handleLogout}
-                className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Logout
               </button>
@@ -165,7 +161,7 @@ const MentorHomepage = () => {
       <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Welcome back, {mentorData?.FullName || "Mentor"}!
+            Welcome back !
           </h1>
           <p className="text-indigo-100 text-lg md:text-xl">
             Making a difference in students' lives
@@ -183,7 +179,7 @@ const MentorHomepage = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-800">Expertise</h3>
             </div>
-            <p className="text-gray-600">{mentorData?.Expertise || "Not specified"}</p>
+            <p className="text-gray-600">" Networking , Patience , Communication ... "</p>
           </div>
 
           <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
@@ -193,7 +189,7 @@ const MentorHomepage = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-800">Experience</h3>
             </div>
-            <p className="text-gray-600">{mentorData?.ExperienceYears || 0} years</p>
+            <p className="text-gray-600">{mentorData?.ExperienceYears || 5} years</p>
           </div>
 
           <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
@@ -201,9 +197,9 @@ const MentorHomepage = () => {
               <div className="p-3 bg-amber-100 rounded-lg">
                 <DollarSign className="h-6 w-6 text-amber-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Hourly Rate</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Hourly Price</h3>
             </div>
-            <p className="text-gray-600">${mentorData?.Rate || 0}/hr</p>
+            <p className="text-gray-600">₹{mentorData?.Rate || 1000}/hr</p>
           </div>
         </div>
 
@@ -213,7 +209,7 @@ const MentorHomepage = () => {
             onClick={() => router.push("/SettingMentorProfile")}
             className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium"
           >
-            Upload Profile
+            Publish Profile
           </button>
           <Link href="/MentorAssignedStudents">
             <button className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition-colors duration-200 font-medium">

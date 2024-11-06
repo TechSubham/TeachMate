@@ -51,8 +51,8 @@ const TeacherHomePage = () => {
   const features = [
     {
       icon: <Layout className="h-6 w-6" />,
-      title: "Course Management",
-      description: "Create and manage your online courses",
+      title: "Deploy New Courses",
+      description: "Create , Deploy and Manage new courses ",
       link: "/DeployCourses",
       color: "bg-blue-500"
     },
@@ -71,7 +71,7 @@ const TeacherHomePage = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Teacher Dashboard
+             Dashboard
           </h1>
           <p className="text-xl text-gray-600">
             Manage your courses and empower student learning

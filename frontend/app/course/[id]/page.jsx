@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CourseDetails({ params }) {
@@ -33,7 +33,7 @@ export default function CourseDetails({ params }) {
   const router = useRouter();
   const courseId = params.id;
 
-  const handleRemoveStudent = async (studentId) => {
+  const removeStudent = async (studentId) => {
     try {
       const response = await fetch(
         `http://localhost:5050/Enrollments/${courseId}/${studentId}`,
@@ -41,23 +41,38 @@ export default function CourseDetails({ params }) {
           method: "DELETE",
         }
       );
-
-      if (response.ok) {
-        // Remove the student from the local state
-        setEnrolledStudents(
-          enrolledStudents.filter((student) => student.ID !== studentId)
-        );
-        alert("Student removed from the course successfully");
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to remove student");
+  
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to remove student");
       }
+  
+      // Update the enrolled students list
+      setEnrolledStudents((prevStudents) =>
+        prevStudents.filter((student) => student.ID !== studentId)
+      );
+  
+      alert("Student removed successfully");
     } catch (err) {
-      console.error("Error details:", err);
+      console.error("Error removing student:", err);
       setError(err.message || "An error occurred while removing the student");
     }
   };
-
+  
+  const handleRemoveStudent = useCallback(
+    (studentId, studentName) => {
+      if (
+        window.confirm(
+          `Are you sure you want to remove ${studentName} from this course?`
+        )
+      ) {
+        removeStudent(studentId);
+      }
+    },
+    [courseId]
+  );
+  
+  
   useEffect(() => {
     const initializeData = async () => {
       try {
@@ -391,76 +406,79 @@ export default function CourseDetails({ params }) {
 
           {/* Enrolled Students Section */}
           <div className="bg-white rounded-xl shadow-md p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Enrolled Students
-            </h2>
-            {enrolledStudents.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No students enrolled yet</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Phone Number
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Education Level
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Enrollment Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {enrolledStudents.map((student) => (
-                      <tr
-                        key={student.ID}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                          {student.First_Name} {student.Last_Name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {student.Email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {student.Phone_Number}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {student.Education_Level}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {new Date(
-                            student.Enrollment_Date
-                          ).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          <button
-                            className="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                            onClick={() => handleRemoveStudent(student.ID)}
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    Enrolled Students
+  </h2>
+  {enrolledStudents.length === 0 ? (
+    <div className="text-center py-8">
+      <p className="text-gray-500">No students enrolled yet</p>
+    </div>
+  ) : (
+    <div className="overflow-x-auto rounded-lg">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Email
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Phone Number
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Education Level
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Enrollment Date
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {enrolledStudents.map((student) => (
+            <tr
+              key={student.ID}
+              className="hover:bg-gray-50 transition-colors"
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                {student.First_Name} {student.Last_Name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {student.Email}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {student.Phone_Number}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {student.Education_Level}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {new Date(student.Enrollment_Date).toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <button
+                  onClick={() =>
+                    handleRemoveStudent(
+                      student.ID,
+                      `${student.First_Name} ${student.Last_Name}`
+                    )
+                  }
+                  className="text-red-600 hover:text-red-800 font-medium focus:outline-none focus:underline transition-colors"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
 
           {/* Schedule Class Form */}
           <div className="bg-white rounded-xl shadow-md p-8 mb-8">

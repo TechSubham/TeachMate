@@ -3,7 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-export default function ProfileSetup() {
+const MentorProfileSetup = () => {
   const [values, setValues] = useState({
     FullName: "",
     Email: "",
@@ -24,10 +24,7 @@ export default function ProfileSetup() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5050/Profile/Mentor",
-        values
-      );
+      const response = await axios.post("http://localhost:5050/Profile/Mentor", values);
       setMessage(response.data.message);
 
       if (response.data.message.includes("Profile setup completed")) {
@@ -50,132 +47,122 @@ export default function ProfileSetup() {
     }
   };
 
-  const InputField = ({ label, name, type = "text", ...props }) => (
-    <div className="mb-6">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-      </label>
-      <input
-        type={type}
-        name={name}
-        id={name}
-        value={values[name]}
-        onChange={handleChange}
-        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-        {...props}
-      />
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl shadow-xl p-8 space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Mentor Profile Setup</h2>
-            <p className="text-gray-600">Share your expertise and experience with students</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+      <div className="max-w-lg w-full bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <h2 className="text-2xl font-bold text-gray-800 text-center">Mentor Profile Setup</h2>
+        <p className="text-gray-600 text-center mb-6">Fill in the form to complete your mentor profile</p>
+
+        {message && (
+          <div
+            className={`p-4 rounded-lg text-center ${
+              message.includes("Profile setup completed") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="FullName">Full Name</label>
+            <input
+              type="text"
+              name="FullName"
+              value={values.FullName}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
           </div>
 
-          {message && (
-            <div
-              className={`p-4 rounded-lg ${
-                message.includes("Profile setup completed")
-                  ? "bg-green-50 text-green-800"
-                  : "bg-red-50 text-red-800"
-              } mb-6`}
-            >
-              {message}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Full Name"
-                name="FullName"
-                placeholder="Enter your full name"
-                required
-              />
-              <InputField
-                label="Email Address"
-                name="Email"
-                type="email"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-
-            <InputField
-              label="Area of Expertise"
-              name="Expertise"
-              placeholder="e.g., Web Development, Data Science, Machine Learning"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="Email">Email Address</label>
+            <input
+              type="email"
+              name="Email"
+              value={values.Email}
+              onChange={handleChange}
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             />
+          </div>
 
-            <div className="mb-6">
-              <label htmlFor="Bio" className="block text-sm font-medium text-gray-700 mb-2">
-                Professional Bio
-              </label>
-              <textarea
-                name="Bio"
-                id="Bio"
-                value={values.Bio}
-                onChange={handleChange}
-                rows="4"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none"
-                placeholder="Tell students about your background and teaching approach..."
-                required
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="Expertise">Expertise</label>
+            <input
+              type="text"
+              name="Expertise"
+              value={values.Expertise}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <InputField
-                label="Years of Experience"
-                name="ExperienceYears"
-                type="number"
-                min="0"
-                placeholder="Enter years of experience"
-                required
-              />
-              <InputField
-                label="Hourly Rate ($)"
-                name="Rate"
-                type="number"
-                min="0"
-                placeholder="Enter your hourly rate"
-                required
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="Bio">Bio</label>
+            <textarea
+              name="Bio"
+              value={values.Bio}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              rows="3"
+            />
+          </div>
 
-            <div className="mb-6">
-              <label htmlFor="Education_Level" className="block text-sm font-medium text-gray-700 mb-2">
-                Education Level
-              </label>
-              <select
-                name="Education_Level"
-                id="Education_Level"
-                value={values.Education_Level}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                required
-              >
-                <option value="">Select your education level</option>
-                <option value="High School">High School</option>
-                <option value="Undergraduate">Undergraduate</option>
-                <option value="Postgraduate">Postgraduate</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="ExperienceYears">Years of Experience</label>
+            <input
+              type="number"
+              name="ExperienceYears"
+              value={values.ExperienceYears}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-[1.02]"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="Education_Level">Education Level</label>
+            <select
+              name="Education_Level"
+              value={values.Education_Level}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             >
-              Complete Mentor Profile
-            </button>
-          </form>
-        </div>
+              <option value="">Select your education level</option>
+              <option value="High School">High School</option>
+              <option value="Undergraduate">Undergraduate</option>
+              <option value="Postgraduate">Postgraduate</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="Rate">Hourly Rate</label>
+            <input
+              type="number"
+              name="Rate"
+              value={values.Rate}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition transform hover:scale-105"
+          >
+            Complete Profile Setup
+          </button>
+        </form>
       </div>
     </div>
   );
-}
+};
+
+export default MentorProfileSetup;

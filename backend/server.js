@@ -1333,23 +1333,71 @@ app.get("/MentorStudents/:mentorEmail", (req, res) => {
 });
 
 // Backend API
-app.delete('/Enrollments/:courseId/:studentId', (req, res) => {
+app.delete("/Enrollments/:courseId/:studentId", async (req, res) => {
   const { courseId, studentId } = req.params;
+  const { teacherEmail } = req.body;
 
-  const sql = 'DELETE FROM Enrollments WHERE Course_ID = ? AND Student_ID = ?';
+  if (!teacherEmail) {
+    return res.status(401).json({ error: "Teacher email is required" });
+  }
 
-  db.query(sql, [courseId, studentId], (err, result) => {
-    if (err) {
-      console.error('Error deleting enrollment:', err);
-      return res.status(500).json({ error: 'An error occurred while removing the student' });
+  try {
+    // First verify the teacher owns this course
+    const [[course]] = await pool.query(
+      "SELECT * FROM Courses WHERE Course_ID = ? AND Teacher_Email = ?",
+      [courseId, teacherEmail]
+    );
+
+    if (!course) {
+      return res.status(403).json({ error: "You don't have permission to modify this course" });
     }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Enrollment not found' });
+    // Check if the student is enrolled
+    const [[enrollment]] = await pool.query(
+      "SELECT * FROM Enrollments WHERE Course_ID = ? AND Student_ID = ?",
+      [courseId, studentId]
+    );
+
+    if (!enrollment) {
+      return res.status(404).json({ error: "Student not found in the course" });
     }
 
-    res.status(200).json({ message: 'Student removed from the course successfully' });
-  });
+    // Remove the enrollment
+    await pool.query(
+      "DELETE FROM Enrollments WHERE Course_ID = ? AND Student_ID = ?",
+      [courseId, studentId]
+    );
+
+    res.json({ message: "Student removed from the course" });
+  } catch (err) {
+    console.error("Error removing student:", err);
+    res.status(500).json({ error: "Failed to remove student" });
+  }
+});
+
+// Add middleware for checking teacher email
+const checkTeacherEmail = async (req, res, next) => {
+  const teacherEmail = req.headers.teacheremail;
+  
+  if (!teacherEmail) {
+    return res.status(401).json({ error: "Teacher email is required" });
+  }
+
+  // Add the teacher email to the request object
+  req.teacherEmail = teacherEmail;
+  next();
+};
+
+
+app.delete('/courses/:courseId', async (req, res) => {
+  try {
+    const courseId = req.params.courseId;
+    // Code to delete the course from the database
+    await deleteCourseFromDB(courseId);
+    res.status(200).json({ message: 'Course deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete the course' });
+  }
 });
 
 app.get('/Enrollments/:courseId/students', (req, res) => {
@@ -1638,3 +1686,8 @@ const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
+
+async function deleteCourseFromDB(courseId) {
+  const query = 'DELETE FROM Courses WHERE Course_ID = ?';
+  await db.query(query, [courseId]);
+}
