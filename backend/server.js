@@ -113,7 +113,7 @@ app.post('/upload-assignment/:courseId', upload.single('pdf'), (req, res) => {
   });
 });
 
-app.get('/Assignments/:courseId', (req, res) => {
+app.get('/Assignments', (req, res) => {
   const { courseId } = req.params;
   const sql = "SELECT * FROM Assignments WHERE Course_ID = ? ORDER BY Due_Date ASC";
 
@@ -311,7 +311,7 @@ const verifyEnrollment = async (req, res, next) => {
 };
 
 
-app.get("/ClassSchedules/:courseId", verifyEnrollment, (req, res) => {
+app.get("/ClassSchedules/", verifyEnrollment, (req, res) => {
   const { courseId } = req.params;
 
   const sql = `
