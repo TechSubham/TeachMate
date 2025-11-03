@@ -16,26 +16,6 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const checkProfile = async (role, email) => {
-    try {
-      const encodedEmail = encodeURIComponent(email.trim());
-      const response = await fetch(`${API_BASE_URL}/Profile/${role}/${encodedEmail}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Profile check failed: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return data.exists;
-    } catch (error) {
-      console.error('Profile check error:', error);
-      return false;
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -53,19 +33,14 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok && data.role) {
-        const { role, email: loggedInEmail } = data;
+        const { role, email: loggedInEmail, profileExists } = data;
 
         localStorage.setItem('userRole', role);
         localStorage.setItem('userEmail', loggedInEmail);
 
-        const profileExists = await checkProfile(role, loggedInEmail);
-
+        // Direct to homepage if profile exists, otherwise to profile setup
         if (profileExists) {
-          if (role === 'Mentor') {
-            router.push(`/Homepage/Mentor`);
-          } else {
-            router.push(`/Homepage/${role}`);
-          }
+          router.push(`/Homepage/${role}`);
         } else {
           router.push(`/Profile/${role}`);
         }
@@ -188,7 +163,6 @@ const Login = () => {
           </motion.div>
         </motion.div>
 
-        {/* Background Image Section */}
         <motion.div
           className="hidden lg:block w-1/2 relative"
           initial={{ x: '100%', opacity: 0 }}
