@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_BASE_URL } from "../../lib/utils";
+import { API_BASE_URL } from "../../../lib/utils";
 import { useParams } from 'next/navigation';
 
 const CourseContent = () => {
