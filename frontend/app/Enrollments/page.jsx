@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 
 const EnrolledCourses = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -15,10 +16,10 @@ const EnrolledCourses = () => {
           throw new Error('No student email found. Please log in.');
         }
 
-        const studentResponse = await axios.get(`http://localhost:5050/Profile/Student/${encodeURIComponent(studentEmail)}`);
+        const studentResponse = await axios.get(`${API_BASE_URL}/Profile/Student/${encodeURIComponent(studentEmail)}`);
         const studentId = studentResponse.data.Student_ID;
 
-        const coursesResponse = await axios.get(`http://localhost:5050/Enrollments/${studentId}`);
+        const coursesResponse = await axios.get(`${API_BASE_URL}/Enrollments/${studentId}`);
         setEnrolledCourses(coursesResponse.data);
         setLoading(false);
       } catch (err) {

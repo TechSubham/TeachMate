@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 import { useParams } from 'next/navigation';
 
 const CourseContent = () => {
@@ -26,13 +27,13 @@ const CourseContent = () => {
       try {
         setLoading(true);
         const [classesResponse, assignmentsResponse, materialsResponse] = await Promise.all([
-          axios.get(`http://localhost:5050/ClassSchedules/${courseId}`, {
+          axios.get(`${API_BASE_URL}/ClassSchedules/${courseId}`, {
             headers: { 'student-email': studentEmail }
           }),
-          axios.get(`http://localhost:5050/Assignments/${courseId}`, {
+          axios.get(`${API_BASE_URL}/Assignments/${courseId}`, {
             headers: { 'student-email': studentEmail }
           }),
-          axios.get(`http://localhost:5050/CourseMaterials/${courseId}`, {
+          axios.get(`${API_BASE_URL}/CourseMaterials/${courseId}`, {
             headers: { 'student-email': studentEmail }
           })
         ]);
@@ -62,7 +63,7 @@ const CourseContent = () => {
     
     try {
       const response = await axios({
-        url: `http://localhost:5050/download-material/${materialId}`,
+        url: `${API_BASE_URL}/download-material/${materialId}`,
         method: 'GET',
         responseType: 'blob',
         headers: { 'student-email': studentEmail }
@@ -223,7 +224,7 @@ const CourseContent = () => {
                     </div>
                     {assignment.File_Path && (
                       <a
-                        href={`http://localhost:5050/download-assignment/${assignment.Assignment_ID}`}
+                        href={`${API_BASE_URL}/download-assignment/${assignment.Assignment_ID}`}
                         className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

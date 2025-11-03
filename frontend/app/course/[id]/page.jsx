@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect , useCallback } from "react";
+import { API_BASE_URL } from "../../lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function CourseDetails({ params }) {
@@ -36,7 +37,7 @@ export default function CourseDetails({ params }) {
   const removeStudent = async (studentId) => {
     try {
       const response = await fetch(
-        `http://localhost:5050/Enrollments/${courseId}/${studentId}`,
+        `${API_BASE_URL}/Enrollments/${courseId}/${studentId}`,
         {
           method: "DELETE",
         }
@@ -85,7 +86,7 @@ export default function CourseDetails({ params }) {
         setTeacherEmail(email);
 
         const verifyResponse = await fetch(
-          `http://localhost:5050/VerifyCourseOwnership/${courseId}/${encodeURIComponent(
+          `${API_BASE_URL}/VerifyCourseOwnership/${courseId}/${encodeURIComponent(
             email
           )}`
         );
@@ -104,11 +105,11 @@ export default function CourseDetails({ params }) {
           enrolledStudentsResponse,
         ] = await Promise.all([
           fetch(
-            `http://localhost:5050/TeacherCourses/${encodeURIComponent(email)}`
+            `${API_BASE_URL}/TeacherCourses/${encodeURIComponent(email)}`
           ),
-          fetch(`http://localhost:5050/ClassSchedules/${courseId}`),
-          fetch(`http://localhost:5050/Assignments/${courseId}`),
-          fetch(`http://localhost:5050/Enrollments/${courseId}/students`),
+          fetch(`${API_BASE_URL}/ClassSchedules/${courseId}`),
+          fetch(`${API_BASE_URL}/Assignments/${courseId}`),
+          fetch(`${API_BASE_URL}/Enrollments/${courseId}/students`),
         ]);
 
         const courses = await courseResponse.json();
@@ -162,7 +163,7 @@ export default function CourseDetails({ params }) {
         Meeting_Link: newSchedule.meeting_link || "",
       };
 
-      const response = await fetch("http://localhost:5050/ScheduleClass", {
+      const response = await fetch(`${API_BASE_URL}/ScheduleClass`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -176,7 +177,7 @@ export default function CourseDetails({ params }) {
       }
 
       const updatedSchedules = await fetch(
-        `http://localhost:5050/ClassSchedules/${courseId}`
+        `${API_BASE_URL}/ClassSchedules/${courseId}`
       );
       const schedulesData = await updatedSchedules.json();
       setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
@@ -213,7 +214,7 @@ export default function CourseDetails({ params }) {
       formData.append("pdf", file);
 
       const response = await fetch(
-        `http://localhost:5050/upload-assignment/${courseId}`,
+        `${API_BASE_URL}/upload-assignment/${courseId}`,
         {
           method: "POST",
           body: formData,
@@ -274,7 +275,7 @@ export default function CourseDetails({ params }) {
       formData.append("pdf", file);
 
       const response = await fetch(
-        `http://localhost:5050/upload-assignment/${courseId}`,
+        `${API_BASE_URL}/upload-assignment/${courseId}`,
         {
           method: "POST",
           body: formData,
@@ -287,7 +288,7 @@ export default function CourseDetails({ params }) {
       }
 
       const updatedAssignments = await fetch(
-        `http://localhost:5050/Assignments/${courseId}`
+        `${API_BASE_URL}/Assignments/${courseId}`
       );
       const assignmentsData = await updatedAssignments.json();
       setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);

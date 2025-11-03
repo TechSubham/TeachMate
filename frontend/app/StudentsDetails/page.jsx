@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from "../../lib/utils";
 import { UserCircle, Mail, Calendar, GraduationCap, Phone } from 'lucide-react';
 
 export default function CourseStudentsPage({ params }) {
@@ -17,7 +18,7 @@ export default function CourseStudentsPage({ params }) {
         }
 
         const verifyResponse = await fetch(
-          `http://localhost:5050/VerifyCourseOwnership/${params.id}/${encodeURIComponent(teacherEmail)}`
+          `${API_BASE_URL}/VerifyCourseOwnership/${params.id}/${encodeURIComponent(teacherEmail)}`
         );
         const verifyData = await verifyResponse.json();
 
@@ -26,8 +27,8 @@ export default function CourseStudentsPage({ params }) {
         }
 
         const [courseResponse, enrollmentsResponse] = await Promise.all([
-          fetch(`http://localhost:5050/api/courses/${params.id}`),
-          fetch(`http://localhost:5050/Enrollments/${params.id}/students`)
+          fetch(`${API_BASE_URL}/api/courses/${params.id}`),
+          fetch(`${API_BASE_URL}/Enrollments/${params.id}/students`)
         ]);
 
         if (!courseResponse.ok || !enrollmentsResponse.ok) {

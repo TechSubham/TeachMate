@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../../lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function TeacherProfileForm() {
@@ -29,7 +30,7 @@ export default function TeacherProfileForm() {
     event.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5050/Profile/Teacher", values);
+      const response = await axios.post(`${API_BASE_URL}/Profile/Teacher`, values);
       setMessage(response.data.message);
       if (response.status === 200) {
         setValues({

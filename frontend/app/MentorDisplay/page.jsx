@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 import { Globe, Linkedin, Github, Clock, DollarSign, Award } from 'lucide-react';
 
 const MentorsPage = () => {
@@ -11,7 +12,7 @@ const MentorsPage = () => {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await axios.get('http://localhost:5050/MentorDisplay');
+        const response = await axios.get(`${API_BASE_URL}/MentorDisplay`);
         setMentors(response.data);
       } catch (error) {
         console.error('Error fetching mentors:', error);
@@ -31,7 +32,7 @@ const MentorsPage = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5050/AssignMentor', {
+      const response = await axios.post(`${API_BASE_URL}/AssignMentor`, {
         student_email: studentEmail,
         mentor_email: mentorEmail,
       });

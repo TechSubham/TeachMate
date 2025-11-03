@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Calendar, Clock, BookOpen, X } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -18,7 +19,7 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:5050/Courses');
+        const response = await axios.get(`${API_BASE_URL}/Courses`);
         setCourses(response.data);
         setFilteredCourses(response.data);
       } catch (error) {
@@ -64,7 +65,7 @@ const Courses = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5050/Enrollments', {
+      const response = await axios.post(`${API_BASE_URL}/Enrollments`, {
         Student_Email: studentEmail,
         Course_ID: selectedCourse.Course_ID,
         Enrollment_Date: enrollmentData.Enrollment_Date,

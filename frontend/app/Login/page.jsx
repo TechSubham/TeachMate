@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import background2 from "../../Public/login_bg.jpg";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "../../lib/utils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ const Login = () => {
   const checkProfile = async (role, email) => {
     try {
       const encodedEmail = encodeURIComponent(email.trim());
-      const response = await fetch(`http://localhost:5050/Profile/${role}/${encodedEmail}`, {
+      const response = await fetch(`${API_BASE_URL}/Profile/${role}/${encodedEmail}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -43,7 +44,7 @@ const Login = () => {
     try {
       const trimmedEmail = email.trim();
       
-      const response = await fetch('http://localhost:5050/Login', {
+      const response = await fetch(`${API_BASE_URL}/Login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Email: trimmedEmail, Password: password }),

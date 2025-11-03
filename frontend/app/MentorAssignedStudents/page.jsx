@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 import { useRouter } from 'next/navigation';
 
 export default function MentorDashboard() {
@@ -23,7 +24,7 @@ export default function MentorDashboard() {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5050/MentorStudents/${encodeURIComponent(mentorEmail)}`);
+        const response = await axios.get(`${API_BASE_URL}/MentorStudents/${encodeURIComponent(mentorEmail)}`);
         setStudents(response.data);
         setLoading(false);
       } catch (err) {
@@ -46,7 +47,7 @@ export default function MentorDashboard() {
     const mentorEmail = localStorage.getItem('userEmail');
     
     try {
-      const response = await axios.post('http://localhost:5050/scheduleMeeting', {
+      const response = await axios.post(`${API_BASE_URL}/scheduleMeeting`, {
         mentorEmail,
         studentEmail: selectedStudent.Email,
         meetingDate,
@@ -67,7 +68,7 @@ export default function MentorDashboard() {
     if (window.confirm(`Are you sure you want to remove ${student.First_Name} ${student.Last_Name}?`)) {
       try {
         const mentorEmail = localStorage.getItem('userEmail');
-        await axios.delete(`http://localhost:5050/mentor-assignments/${encodeURIComponent(student.Email)}/${encodeURIComponent(mentorEmail)}`);
+        await axios.delete(`${API_BASE_URL}/mentor-assignments/${encodeURIComponent(student.Email)}/${encodeURIComponent(mentorEmail)}`);
 
         setStudents(students.filter((s) => s.Email !== student.Email));
         alert('Student removed successfully');

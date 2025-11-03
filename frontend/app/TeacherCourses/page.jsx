@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from "../../lib/utils";
 import { useRouter } from 'next/navigation';
 
 export default function TeacherCourses() {
@@ -34,7 +35,7 @@ export default function TeacherCourses() {
         throw new Error('Please log in to view your courses');
       }
 
-      const response = await fetch(`http://localhost:5050/TeacherCourses/${encodeURIComponent(email)}`);
+      const response = await fetch(`${API_BASE_URL}/TeacherCourses/${encodeURIComponent(email)}`);
       if (!response.ok) {
         throw new Error('Failed to fetch courses');
       }
@@ -44,7 +45,7 @@ export default function TeacherCourses() {
       const verifiedCourses = await Promise.all(
         data.map(async (course) => {
           const verifyResponse = await fetch(
-            `http://localhost:5050/VerifyCourseOwnership/${course.Course_ID}/${encodeURIComponent(email)}`
+            `${API_BASE_URL}/VerifyCourseOwnership/${course.Course_ID}/${encodeURIComponent(email)}`
           );
           const verifyData = await verifyResponse.json();
           return verifyData.isOwner ? course : null;
@@ -62,7 +63,7 @@ export default function TeacherCourses() {
   const handleViewDetails = async (courseId) => {
     try {
       const response = await fetch(
-        `http://localhost:5050/VerifyCourseOwnership/${courseId}/${encodeURIComponent(teacherEmail)}`
+        `${API_BASE_URL}/VerifyCourseOwnership/${courseId}/${encodeURIComponent(teacherEmail)}`
       );
       const data = await response.json();
       
@@ -79,7 +80,7 @@ export default function TeacherCourses() {
   const handleEditCourse = async (courseId) => {
     try {
       const response = await fetch(
-        `http://localhost:5050/VerifyCourseOwnership/${courseId}/${encodeURIComponent(teacherEmail)}`
+        `${API_BASE_URL}/VerifyCourseOwnership/${courseId}/${encodeURIComponent(teacherEmail)}`
       );
       const data = await response.json();
       

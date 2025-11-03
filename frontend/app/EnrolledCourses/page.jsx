@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from "../../lib/utils";
 import { BookOpen, Calendar, Clock, Target, ChevronRight, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,7 +26,7 @@ export default function EnrolledCourses() {
         }
 
         const encodedEmail = encodeURIComponent(studentEmail);
-        const response = await fetch(`http://localhost:5050/Enrollments/${encodedEmail}`, {
+        const response = await fetch(`${API_BASE_URL}/Enrollments/${encodedEmail}`, {
           headers: {
             'Content-Type': 'application/json',
             'student-email': studentEmail

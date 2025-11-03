@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../lib/utils";
 import { useRouter } from 'next/navigation';
 
 export default function DeployCourses() {
@@ -81,7 +82,7 @@ export default function DeployCourses() {
 
     try {
       console.log("Submitting form with values:", values);
-      const response = await axios.post("http://localhost:5050/DeployCourses", values);
+      const response = await axios.post(`${API_BASE_URL}/DeployCourses`, values);
       console.log("Server response:", response);
       setMessage(response.data.message);
 

@@ -5,6 +5,7 @@ import Logo from "../../favicon.ico"
 import { useState, useEffect } from 'react';
 import { BookOpen, Calendar, GraduationCap, BookOpenCheck, Clock, Search, Users, BookMarked, Menu, X, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from "../../../lib/utils";
 
 export default function StudentHomepage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function StudentHomepage() {
 
         const encodedEmail = encodeURIComponent(studentEmail.trim());
         const profileResponse = await fetch(
-          `http://localhost:5050/Profile/Student/${encodedEmail}`,
+          `${API_BASE_URL}/Profile/Student/${encodedEmail}`,
           {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include'
@@ -55,7 +56,7 @@ export default function StudentHomepage() {
         setStudentData(profileData);
 
         const coursesResponse = await fetch(
-          `http://localhost:5050/Enrollments/${encodedEmail}`,
+          `${API_BASE_URL}/Enrollments/${encodedEmail}`,
           {
             headers: {
               'Content-Type': 'application/json',

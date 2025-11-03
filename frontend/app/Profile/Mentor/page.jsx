@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../../lib/utils";
 import { useRouter } from "next/navigation";
 
 const MentorProfileSetup = () => {
@@ -24,7 +25,7 @@ const MentorProfileSetup = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5050/Profile/Mentor", values);
+      const response = await axios.post(`${API_BASE_URL}/Profile/Mentor`, values);
       setMessage(response.data.message);
 
       if (response.data.message.includes("Profile setup completed")) {

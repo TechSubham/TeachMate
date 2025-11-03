@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "../../../lib/utils";
 import Link from "next/link";
 import { GraduationCap, Briefcase, DollarSign, Menu, X } from "lucide-react";
 
@@ -24,7 +25,7 @@ const MentorHomepage = () => {
       try {
         const encodedEmail = encodeURIComponent(email);
         const response = await fetch(
-          `http://localhost:5050/Profile/Mentor/${encodedEmail}`
+          `${API_BASE_URL}/Profile/Mentor/${encodedEmail}`
         );
 
         if (!response.ok) {

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Award, DollarSign, Briefcase, Github, Linkedin, X, Video, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from "../../lib/utils";
 
 const StudentAssignedMentors = () => {
   const [assignedMentors, setAssignedMentors] = useState([]);
@@ -21,7 +22,7 @@ const StudentAssignedMentors = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5050/StudentAssignedMentors/${studentEmail}`);
+        const response = await axios.get(`${API_BASE_URL}/StudentAssignedMentors/${studentEmail}`);
         setAssignedMentors(response.data);
         setLoading(false);
       } catch (error) {
@@ -39,7 +40,7 @@ const StudentAssignedMentors = () => {
     try {
       const studentEmail = localStorage.getItem('userEmail');
       const response = await axios.get(
-        `http://localhost:5050/scheduledSessions/${mentor.email}/${studentEmail}`
+        `${API_BASE_URL}/scheduledSessions/${mentor.email}/${studentEmail}`
       );
       setScheduledSessions(response.data);
       setShowSessionPopup(true);
