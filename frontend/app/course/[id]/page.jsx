@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect , useCallback } from "react";
-import { API_BASE_URL } from "../../lib/utils";
+import { API_BASE_URL } from "../../../lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function CourseDetails({ params }) {
