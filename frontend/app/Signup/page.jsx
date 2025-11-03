@@ -31,13 +31,16 @@ export default function SignUp() {
       setMessage(response.data.message);
   
       if (response.data.message.includes("Successfully")) {
+        localStorage.setItem('userRole', values.Role);
+        localStorage.setItem('userEmail', values.Email);
+        
         setTimeout(() => {
           if (values.Role === "Student") {
             router.push('/Profile/Student');
           } else if (values.Role === "Teacher") {
             router.push('/Profile/Teacher');
           } else if (values.Role === "Mentor") {
-            router.push('/Profile/Mentor'); // Redirect to Mentor Profile page
+            router.push('/Profile/Mentor'); 
           }
         }, 2000);
       }
